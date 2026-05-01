@@ -5,7 +5,7 @@ from flask_jwt_extended import JWTManager
 from config import Config
 import os
 import logging
-from extensions import db, bcrypt
+from myproject.extensions import db, bcrypt
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
