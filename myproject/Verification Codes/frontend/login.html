@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign In – FaceAuth</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
+  <body>
+    <div class="page">
+      <div class="card">
+        <!-- Brand -->
+        <div class="brand">
+          <div class="brand-icon">🔐</div>
+          <div>
+            <div class="brand-name">FaceAuth</div>
+            <div class="brand-tagline">Biometric Security Platform</div>
+          </div>
+        </div>
+
+        <h1>Welcome back</h1>
+        <p class="subtitle">
+          Enter your credentials, then verify with your face to sign in.
+        </p>
+
+        <!-- Alert -->
+        <div class="alert alert-error" id="alert">
+          <span>⚠️</span>
+          <span id="alertMsg"></span>
+        </div>
+
+        <!-- ── STEP 1: Credentials ───────────────────────────────────────────── -->
+        <div id="step1">
+          <div class="form-group">
+            <label>Username</label>
+            <input
+              type="text"
+              id="username"
+              placeholder="Your username"
+              autocomplete="username"
+            />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              id="password"
+              placeholder="Your password"
+              autocomplete="current-password"
+            />
+          </div>
+          <button class="btn btn-primary" id="nextBtn" onclick="goToFaceStep()">
+            Continue to Face Verification →
+          </button>
+        </div>
+
+        <!-- ── STEP 2: Face verification ────────────────────────────────────── -->
+        <div id="step2" style="display: none">
+          <div class="divider">Face Verification (2FA)</div>
+
+          <p class="webcam-hint" id="hint">
+            📷 Look directly at the camera — capturing in 3 seconds…
+          </p>
+
+          <!-- Webcam ring -->
+          <div class="webcam-wrapper">
+            <div class="webcam-ring" id="ring">
+              <div class="webcam-placeholder" id="placeholder">
+                <div class="ph-icon">📷</div>
+                <span>Starting camera…</span>
+              </div>
+              <video
+                id="video"
+                autoplay
+                muted
+                playsinline
+                style="display: none"
+              ></video>
+              <canvas id="canvas" style="display: none"></canvas>
+              <div class="countdown-ring" id="countdown"></div>
+            </div>
+
+            <!-- Preview after capture -->
+            <div class="face-preview" id="preview">
+              <img id="previewImg" src="" alt="Captured face" />
+            </div>
+          </div>
+
+          <!-- Action buttons (shown after capture) -->
+          <div class="webcam-actions" id="captureActions" style="display: none">
+            <button class="btn btn-outline btn-sm" onclick="retake()">
+              ↺ Retake
+            </button>
+            <button
+              class="btn btn-success btn-sm"
+              id="submitBtn"
+              onclick="doLogin()"
+            >
+              <span id="submitText">✓ Verify &amp; Sign In</span>
+              <div class="spinner" id="spinner"></div>
+            </button>
+          </div>
+
+          <button
+            class="btn btn-outline"
+            style="margin-top: 14px"
+            onclick="backToCredentials()"
+          >
+            ← Back
+          </button>
+        </div>
+
+        <!-- Footer -->
+        <div class="link-row">
+          Don't have an account? <a href="/register">Create one</a>
+        </div>
+
+        <div class="badges">
+          <span class="badge">🔒 bcrypt</span>
+          <span class="badge">🧠 FaceNet AI</span>
+          <span class="badge">⚡ JWT 2FA</span>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/js/face-auth.js"></script>
+    <script src="/static/js/api.js"></script>
+    <script>
+      // Redirect already-authenticated users straight to dashboard
+      if (Token.exists()) window.location.href = "/dashboard";
+
+      let fc = null; // FaceCapture instance
+      let capturedBlob = null;
+
+      // ── Helpers ───────────────────────────────────────────────────────────────
+      function showError(msg) {
+        const el = document.getElementById("alert");
+        document.getElementById("alertMsg").textContent = msg;
+        el.className = "alert alert-error show";
+      }
+      function hideAlert() {
+        document.getElementById("alert").classList.remove("show");
+      }
+
+      // ── Step navigation ───────────────────────────────────────────────────────
+      function goToFaceStep() {
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+
+        if (!username || !password) {
+          showError("Please enter your username and password.");
+          return;
+        }
+        hideAlert();
+        document.getElementById("step1").style.display = "none";
+        document.getElementById("step2").style.display = "block";
+        startCamera();
+      }
+
+      function backToCredentials() {
+        if (fc) {
+          fc.cancelCountdown();
+          fc.stop();
+          fc = null;
+        }
+        capturedBlob = null;
+        resetWebcamUI();
+        document.getElementById("step2").style.display = "none";
+        document.getElementById("step1").style.display = "block";
+        hideAlert();
+      }
+
+      // ── Webcam ────────────────────────────────────────────────────────────────
+      function resetWebcamUI() {
+        document.getElementById("preview").style.display = "none";
+        document.getElementById("ring").style.display = "block";
+        document.getElementById("video").style.display = "none";
+        document.getElementById("placeholder").style.display = "flex";
+        document.getElementById("placeholder").innerHTML =
+          '<div class="ph-icon">📷</div><span>Starting camera…</span>';
+        document.getElementById("captureActions").style.display = "none";
+        document.getElementById("hint").textContent =
+          "📷 Look directly at the camera — capturing in 3 seconds…";
+      }
+
+      async function startCamera() {
+        resetWebcamUI();
+
+        fc = new FaceCapture({
+          video: document.getElementById("video"),
+          canvas: document.getElementById("canvas"),
+          ring: document.getElementById("ring"),
+          countdownEl: document.getElementById("countdown"),
+          placeholder: document.getElementById("placeholder"),
+        });
+
+        try {
+          document.getElementById("placeholder").innerHTML =
+            '<div class="ph-icon">⏳</div><span>Requesting camera…</span>';
+          await fc.start();
+
+          // Auto-capture after 3-second countdown
+          const blob = await fc.countdown(3);
+          if (blob) await showPreview(blob);
+        } catch (err) {
+          document.getElementById("placeholder").innerHTML =
+            `<div class="ph-icon">❌</div><span>${err.message}</span>`;
+          showError(err.message);
+        }
+      }
+
+      async function showPreview(blob) {
+        capturedBlob = blob;
+        const dataURL = await blobToDataURL(blob);
+
+        document.getElementById("previewImg").src = dataURL;
+        document.getElementById("preview").style.display = "block";
+        document.getElementById("ring").style.display = "none";
+        document.getElementById("captureActions").style.display = "flex";
+        document.getElementById("hint").textContent =
+          "✅ Photo captured — looks good?";
+
+        fc.stop();
+      }
+
+      async function retake() {
+        capturedBlob = null;
+        await startCamera();
+      }
+
+      // ── Submit ────────────────────────────────────────────────────────────────
+      async function doLogin() {
+        if (!capturedBlob) {
+          showError("Please capture your face first.");
+          return;
+        }
+
+        const btn = document.getElementById("submitBtn");
+        const txt = document.getElementById("submitText");
+        const spinner = document.getElementById("spinner");
+
+        btn.disabled = true;
+        txt.style.display = "none";
+        spinner.style.display = "block";
+        hideAlert();
+
+        try {
+          await loginUser(
+            document.getElementById("username").value.trim(),
+            document.getElementById("password").value,
+            capturedBlob,
+          );
+          window.location.href = "/dashboard";
+        } catch (err) {
+          showError(err.message);
+          btn.disabled = false;
+          txt.style.display = "inline";
+          spinner.style.display = "none";
+        }
+      }
+
+      // Allow Enter key to advance from step 1
+      document.addEventListener("keydown", (e) => {
+        if (
+          e.key === "Enter" &&
+          document.getElementById("step1").style.display !== "none"
+        ) {
+          goToFaceStep();
+        }
+      });
+    </script>
+  </body>
+</html>

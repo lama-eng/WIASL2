@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard – FaceAuth</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
+  <body>
+    <!-- Loading screen – shown until token + profile are verified -->
+    <div id="loadingScreen" class="loading-screen">
+      <div class="loading-ring"></div>
+    </div>
+
+    <!-- Main app – revealed after auth check passes -->
+    <div id="app" style="display: none" class="dashboard-page">
+      <!-- ── Top navigation bar ─────────────────────────────────────────────── -->
+      <nav class="topbar">
+        <div class="topbar-brand"><span>🔐</span> FaceAuth</div>
+        <div class="topbar-right">
+          <div class="avatar" id="avatarInitial">?</div>
+          <span
+            id="topbarName"
+            style="font-size: 14px; color: var(--text-muted)"
+          ></span>
+          <button class="btn btn-outline btn-sm" onclick="logoutUser()">
+            Sign Out
+          </button>
+        </div>
+      </nav>
+
+      <!-- ── Main content ───────────────────────────────────────────────────── -->
+      <main class="main">
+        <!-- Page heading -->
+        <div>
+          <h1 class="page-title">
+            Hello,
+            <span id="welcomeName" style="color: var(--primary)">—</span> 👋
+          </h1>
+          <p class="page-subtitle">
+            You are securely signed into your account.
+          </p>
+        </div>
+
+        <!-- Identity verified banner -->
+        <div class="verify-banner">
+          <div class="vb-icon">🛡️</div>
+          <div>
+            <div class="vb-title">Identity Verified Successfully</div>
+            <div class="vb-desc">
+              Two-factor authentication passed — your password and face
+              biometrics both matched. Your session is protected by a signed JWT
+              token.
+            </div>
+          </div>
+        </div>
+
+        <!-- User info cards -->
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="ic-icon">👤</div>
+            <div class="ic-label">Username</div>
+            <div class="ic-value" id="infoUsername">—</div>
+          </div>
+          <div class="info-card">
+            <div class="ic-icon">📧</div>
+            <div class="ic-label">Email</div>
+            <div class="ic-value" id="infoEmail" style="font-size: 13px">—</div>
+          </div>
+          <div class="info-card">
+            <div class="ic-icon">📅</div>
+            <div class="ic-label">Member Since</div>
+            <div class="ic-value" id="infoDate">—</div>
+          </div>
+          <div class="info-card">
+            <div class="ic-icon">⚡</div>
+            <div class="ic-label">Auth Method</div>
+            <div
+              class="ic-value"
+              style="color: var(--success); font-size: 13px"
+            >
+              Password + Face 2FA
+            </div>
+          </div>
+        </div>
+
+        <!-- Security checklist -->
+        <div class="security-box">
+          <h3>🔒 Session Security Details</h3>
+          <div class="check-list">
+            <div class="check-item">
+              <div class="dot"></div>
+              Password verified via bcrypt (salt rounds: 12)
+            </div>
+            <div class="check-item">
+              <div class="dot"></div>
+              Face verified via FaceNet — cosine similarity threshold &lt; 0.5
+            </div>
+            <div class="check-item">
+              <div class="dot"></div>
+              JWT issued (HS256, 8-hour expiry)
+            </div>
+            <div class="check-item">
+              <div class="dot"></div>
+              CORS policy enforced on all API endpoints
+            </div>
+            <div class="check-item">
+              <div class="dot"></div>
+              Input validation applied on registration (username, email,
+              password)
+            </div>
+            <div class="check-item" style="color: var(--warning)">
+              <div class="dot" style="background: var(--warning)"></div>
+              Use HTTPS + a strong JWT_SECRET environment variable in production
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+      async function init() {
+        requireAuth(); // Redirect to / immediately if no token
+
+        try {
+          const user = await getMe(); // Validate token server-side
+
+          // Populate all display fields
+          const name = user.username;
+          document.getElementById("welcomeName").textContent = name;
+          document.getElementById("topbarName").textContent = name;
+          document.getElementById("avatarInitial").textContent = name
+            .charAt(0)
+            .toUpperCase();
+          document.getElementById("infoUsername").textContent = user.username;
+          document.getElementById("infoEmail").textContent = user.email;
+
+          if (user.created_at) {
+            const d = new Date(user.created_at);
+            document.getElementById("infoDate").textContent =
+              d.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              });
+          }
+
+          // Reveal the app
+          document.getElementById("loadingScreen").style.display = "none";
+          document.getElementById("app").style.display = "block";
+        } catch (_) {
+          // Token expired or invalid — clear and return to login
+          Token.clear();
+          UserCache.clear();
+          window.location.href = "/";
+        }
+      }
+
+      init();
+    </script>
+  </body>
+</html>

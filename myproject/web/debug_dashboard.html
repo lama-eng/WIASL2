@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Dashboard</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #f5f5f5; }
+        .log { background: white; padding: 10px; margin: 5px 0; border-left: 3px solid blue; }
+        .error { border-left-color: red; }
+        .success { border-left-color: green; }
+        .info { border-left-color: orange; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard Debug Tool</h1>
+    <div id="logs"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+        const logsDiv = document.getElementById('logs');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logsDiv.appendChild(div);
+            console.log(message);
+        }
+
+        async function runDebug() {
+            try {
+                // Check 1: Token in localStorage
+                log('=== Checking localStorage ===', 'info');
+                const token = localStorage.getItem('token');
+                const user = localStorage.getItem('user');
+                
+                if (!token) {
+                    log('ERROR: No token in localStorage', 'error');
+                } else {
+                    log(`Token found: ${token.substring(0, 50)}...`, 'success');
+                }
+                
+                if (!user) {
+                    log('ERROR: No user in localStorage', 'error');
+                } else {
+                    const userObj = JSON.parse(user);
+                    log(`User found: ${userObj.name} (${userObj.role})`, 'success');
+                }
+
+                // Check 2: Test API without auth
+                log('=== Testing API health (no auth) ===', 'info');
+                try {
+                    const healthResponse = await fetch(`${API_BASE}/api/health`);
+                    log(`Health check: ${healthResponse.status}`, healthResponse.ok ? 'success' : 'error');
+                } catch (e) {
+                    log(`Health check failed: ${e.message}`, 'error');
+                }
+
+                // Check 3: Test authenticated API call
+                if (token) {
+                    log('=== Testing authenticated API call ===', 'info');
+                    try {
+                        const response = await fetch(`${API_BASE}/api/admin/dashboard/stats`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        log(`Response status: ${response.status}`, response.ok ? 'success' : 'error');
+                        
+                        // Log response headers
+                        log(`Content-Type: ${response.headers.get('content-type')}`, 'info');
+                        
+                        const data = await response.json();
+                        log(`Response data: ${JSON.stringify(data, null, 2)}`, response.ok ? 'success' : 'error');
+                        
+                        if (data.total_cases !== undefined) {
+                            log(`Total cases in response: ${data.total_cases}`, 'success');
+                        }
+                    } catch (e) {
+                        log(`API call failed: ${e.message}`, 'error');
+                    }
+                }
+
+                // Check 4: URL parameters
+                log('=== Checking URL parameters ===', 'info');
+                const urlParams = new URLSearchParams(window.location.search);
+                const role = urlParams.get('role');
+                log(`Role from URL: ${role || 'not found'}`, role === 'admin' ? 'success' : 'error');
+
+            } catch (error) {
+                log(`Unexpected error: ${error.message}`, 'error');
+            }
+        }
+
+        // Run debug when page loads
+        window.addEventListener('load', runDebug);
+    </script>
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Account – FaceAuth</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
+  <body>
+    <div class="page">
+      <div class="card wide">
+        <!-- Brand -->
+        <div class="brand">
+          <div class="brand-icon">🔐</div>
+          <div>
+            <div class="brand-name">FaceAuth</div>
+            <div class="brand-tagline">Biometric Security Platform</div>
+          </div>
+        </div>
+
+        <h1>Create your account</h1>
+        <p class="subtitle">
+          Set up your account in two steps — your details, then face enrollment.
+        </p>
+
+        <!-- Step indicator -->
+        <div class="steps">
+          <div class="step active" id="ind1">
+            <div class="step-num">1</div>
+            <div class="step-label">Your Details</div>
+          </div>
+          <div class="step-line" id="line"></div>
+          <div class="step" id="ind2">
+            <div class="step-num">2</div>
+            <div class="step-label">Face Enrollment</div>
+          </div>
+        </div>
+
+        <!-- Alert -->
+        <div class="alert alert-error" id="alert">
+          <span>⚠️</span>
+          <span id="alertMsg"></span>
+        </div>
+
+        <!-- ── STEP 1: Account details ───────────────────────────────────────── -->
+        <div id="step1">
+          <div class="form-group">
+            <label>Username</label>
+            <input
+              type="text"
+              id="username"
+              placeholder="3–30 characters (letters, numbers, _)"
+              autocomplete="username"
+            />
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input
+              type="email"
+              id="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+            />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              id="password"
+              placeholder="Minimum 8 characters"
+              autocomplete="new-password"
+            />
+          </div>
+          <div class="form-group">
+            <label>Confirm Password</label>
+            <input
+              type="password"
+              id="confirmPw"
+              placeholder="Repeat your password"
+              autocomplete="new-password"
+            />
+          </div>
+          <button class="btn btn-primary" onclick="goToStep2()">
+            Next: Enroll Face →
+          </button>
+        </div>
+
+        <!-- ── STEP 2: Face enrollment ───────────────────────────────────────── -->
+        <div id="step2" style="display: none">
+          <p class="webcam-hint" id="hint">
+            Position your face clearly inside the circle, then click
+            <strong>Capture</strong>
+          </p>
+
+          <!-- Webcam ring -->
+          <div class="webcam-wrapper">
+            <div class="webcam-ring" id="ring">
+              <div class="webcam-placeholder" id="placeholder">
+                <div class="ph-icon">📷</div>
+                <span>Camera loading…</span>
+              </div>
+              <video
+                id="video"
+                autoplay
+                muted
+                playsinline
+                style="display: none"
+              ></video>
+              <canvas id="canvas" style="display: none"></canvas>
+              <div class="countdown-ring" id="countdown"></div>
+            </div>
+
+            <!-- Preview -->
+            <div class="face-preview" id="preview">
+              <img id="previewImg" src="" alt="Captured face" />
+            </div>
+          </div>
+
+          <!-- Capture / retake buttons -->
+          <div class="webcam-actions" style="margin-bottom: 14px">
+            <button
+              class="btn btn-primary btn-sm"
+              id="captureBtn"
+              onclick="captureNow()"
+              style="display: none"
+            >
+              📸 Capture Photo
+            </button>
+            <button
+              class="btn btn-outline btn-sm"
+              id="retakeBtn"
+              onclick="retake()"
+              style="display: none"
+            >
+              ↺ Retake
+            </button>
+          </div>
+
+          <!-- Final submit -->
+          <button
+            class="btn btn-success"
+            id="registerBtn"
+            onclick="doRegister()"
+            style="display: none"
+          >
+            <span id="registerText">✓ Create Account</span>
+            <div class="spinner" id="spinner"></div>
+          </button>
+
+          <button
+            class="btn btn-outline"
+            style="margin-top: 10px"
+            onclick="backToStep1()"
+          >
+            ← Back
+          </button>
+        </div>
+
+        <!-- Footer -->
+        <div class="link-row">
+          Already have an account? <a href="/">Sign in</a>
+        </div>
+
+        <div class="badges">
+          <span class="badge">🔒 bcrypt</span>
+          <span class="badge">🧠 FaceNet AI</span>
+          <span class="badge">⚡ JWT 2FA</span>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/js/face-auth.js"></script>
+    <script src="/static/js/api.js"></script>
+    <script>
+      if (Token.exists()) window.location.href = "/dashboard";
+
+      let fc = null;
+      let capturedBlob = null;
+
+      // ── Helpers ───────────────────────────────────────────────────────────────
+      function showError(msg) {
+        const el = document.getElementById("alert");
+        document.getElementById("alertMsg").textContent = msg;
+        el.className = "alert alert-error show";
+      }
+      function showSuccess(msg) {
+        const el = document.getElementById("alert");
+        document.getElementById("alertMsg").textContent = msg;
+        el.className = "alert alert-success show";
+      }
+      function hideAlert() {
+        document.getElementById("alert").classList.remove("show");
+      }
+
+      function validateEmail(e) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+      }
+
+      // ── Step 1 → Step 2 ───────────────────────────────────────────────────────
+      function goToStep2() {
+        const username = document.getElementById("username").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+        const confirmPw = document.getElementById("confirmPw").value;
+
+        if (username.length < 3 || username.length > 30) {
+          showError("Username must be 3–30 characters.");
+          return;
+        }
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+          showError(
+            "Username can only contain letters, numbers, and underscores.",
+          );
+          return;
+        }
+        if (!validateEmail(email)) {
+          showError("Please enter a valid email address.");
+          return;
+        }
+        if (password.length < 8) {
+          showError("Password must be at least 8 characters.");
+          return;
+        }
+        if (password !== confirmPw) {
+          showError("Passwords do not match.");
+          return;
+        }
+
+        hideAlert();
+
+        // Update step indicators
+        document.getElementById("ind1").className = "step done";
+        document.getElementById("ind1").querySelector(".step-num").textContent =
+          "✓";
+        document.getElementById("line").classList.add("done");
+        document.getElementById("ind2").className = "step active";
+
+        document.getElementById("step1").style.display = "none";
+        document.getElementById("step2").style.display = "block";
+        startCamera();
+      }
+
+      function backToStep1() {
+        if (fc) {
+          fc.cancelCountdown();
+          fc.stop();
+          fc = null;
+        }
+        capturedBlob = null;
+
+        // Reset step indicators
+        document.getElementById("ind1").className = "step active";
+        document.getElementById("ind1").querySelector(".step-num").textContent =
+          "1";
+        document.getElementById("line").classList.remove("done");
+        document.getElementById("ind2").className = "step";
+
+        resetWebcamUI();
+        document.getElementById("step2").style.display = "none";
+        document.getElementById("step1").style.display = "block";
+        hideAlert();
+      }
+
+      // ── Webcam ────────────────────────────────────────────────────────────────
+      function resetWebcamUI() {
+        document.getElementById("preview").style.display = "none";
+        document.getElementById("ring").style.display = "block";
+        document.getElementById("video").style.display = "none";
+        document.getElementById("placeholder").style.display = "flex";
+        document.getElementById("placeholder").innerHTML =
+          '<div class="ph-icon">📷</div><span>Camera loading…</span>';
+        document.getElementById("captureBtn").style.display = "none";
+        document.getElementById("retakeBtn").style.display = "none";
+        document.getElementById("registerBtn").style.display = "none";
+        document.getElementById("hint").innerHTML =
+          "Position your face clearly inside the circle, then click <strong>Capture</strong>";
+      }
+
+      async function startCamera() {
+        resetWebcamUI();
+
+        fc = new FaceCapture({
+          video: document.getElementById("video"),
+          canvas: document.getElementById("canvas"),
+          ring: document.getElementById("ring"),
+          countdownEl: document.getElementById("countdown"),
+          placeholder: document.getElementById("placeholder"),
+        });
+
+        try {
+          document.getElementById("placeholder").innerHTML =
+            '<div class="ph-icon">⏳</div><span>Requesting camera…</span>';
+          await fc.start();
+          // Show capture button once camera is live
+          document.getElementById("captureBtn").style.display = "inline-flex";
+        } catch (err) {
+          document.getElementById("placeholder").innerHTML =
+            `<div class="ph-icon">❌</div><span>${err.message}</span>`;
+          showError(err.message);
+        }
+      }
+
+      async function captureNow() {
+        document.getElementById("captureBtn").style.display = "none";
+        document.getElementById("hint").textContent = "🕒 Hold still…";
+
+        const blob = await fc.countdown(3);
+        if (!blob) return; // countdown was cancelled
+
+        await showPreview(blob);
+      }
+
+      async function showPreview(blob) {
+        capturedBlob = blob;
+        const dataURL = await blobToDataURL(blob);
+
+        document.getElementById("previewImg").src = dataURL;
+        document.getElementById("preview").style.display = "block";
+        document.getElementById("ring").style.display = "none";
+        document.getElementById("retakeBtn").style.display = "inline-flex";
+        document.getElementById("registerBtn").style.display = "flex";
+        document.getElementById("hint").textContent =
+          "✅ Looking great! Review your photo below.";
+
+        fc.stop();
+      }
+
+      async function retake() {
+        capturedBlob = null;
+        await startCamera();
+      }
+
+      // ── Submit ────────────────────────────────────────────────────────────────
+      async function doRegister() {
+        if (!capturedBlob) {
+          showError("Please capture your face photo first.");
+          return;
+        }
+
+        const btn = document.getElementById("registerBtn");
+        const txt = document.getElementById("registerText");
+        const spinner = document.getElementById("spinner");
+
+        btn.disabled = true;
+        txt.style.display = "none";
+        spinner.style.display = "block";
+        hideAlert();
+
+        try {
+          await registerUser(
+            document.getElementById("username").value.trim(),
+            document.getElementById("email").value.trim(),
+            document.getElementById("password").value,
+            capturedBlob,
+          );
+          showSuccess("🎉 Account created! Redirecting to login…");
+          setTimeout(() => (window.location.href = "/"), 2000);
+        } catch (err) {
+          showError(err.message);
+          btn.disabled = false;
+          txt.style.display = "inline";
+          spinner.style.display = "none";
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+opencv-python
+Pillow
+numpy
+keras-facenet
+matplotlib
+tensorflow
+mtcnn
+pandas
+scipy
+# API dependencies
+fastapi
+uvicorn[standard]
+python-multipart
+bcrypt
+PyJWT

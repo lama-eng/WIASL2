@@ -1,0 +1,2693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wisal – Dashboard</title>
+    <!-- Use Tailwind via CDN (ok for development) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Tajawal', sans-serif; }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .sidebar-item {
+            transition: all 0.3s;
+        }
+        .sidebar-item:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .sidebar-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .priority-critical { background-color: #ef4444; color: white; }
+        .priority-high { background-color: #f97316; color: white; }
+        .priority-medium { background-color: #eab308; color: white; }
+        .priority-low { background-color: #22c55e; color: white; }
+        .status-pending { background-color: #eab308; color: white; }
+        .status-approved { background-color: #22c55e; color: white; }
+        .status-rejected { background-color: #ef4444; color: white; }
+        .status-more-info { background-color: #3b82f6; color: white; }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .document-card {
+            transition: all 0.3s;
+        }
+        .document-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white shadow-lg flex flex-col" style="min-height:100vh;">
+            <!-- Logo -->
+            <div class="gradient-bg p-5 text-white" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);">
+                <div class="flex items-center space-x-3 mb-3">
+                    <div style="background:rgba(255,255,255,0.2);padding:10px;border-radius:12px;">
+                        <i class="fas fa-hand-holding-heart text-white" style="font-size:22px;"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-lg" id="brandName">Wisal</span>
+                        <p class="text-xs" style="opacity:0.75;">Donation Platform</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Info -->
+            <div class="p-4 border-b">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 gradient-bg rounded-full flex items-center justify-center text-white font-bold" id="userInitials">
+                        U
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-800" id="userName">Loading...</p>
+                        <p class="text-xs text-gray-500" id="userRole">Loading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 overflow-y-auto" id="sidebarNav">
+                <!-- Dynamic menu will be inserted here -->
+            </nav>
+
+            <!-- Logout Button -->
+            <div class="p-4 border-t">
+                <button id="logoutBtn" class="flex items-center space-x-3 text-gray-600 hover:text-red-600 w-full p-2 rounded-lg sidebar-item">
+                    <i class="fas fa-sign-out-alt w-5"></i>
+                    <span id="logoutText">Sign Out</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto">
+            <!-- Hero Banner -->
+            <div style="background: linear-gradient(135deg,rgba(102,126,234,0.93) 0%,rgba(118,75,162,0.93) 100%), url('https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat; padding: 28px 32px 52px; color: white;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                    <div>
+                        <h1 style="font-size:26px;font-weight:800;margin:0 0 4px;" id="pageTitle">Dashboard</h1>
+                        <p style="opacity:0.78;margin:0;font-size:14px;" id="bannerWelcome">Welcome back &mdash; <span id="bannerUserName" style="font-weight:600;"></span></p>
+                    </div>
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <button onclick="toggleDashLang()" id="dashLangBtn"
+                            style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.35);font-size:13px;font-weight:700;color:white;background:rgba(255,255,255,0.15);cursor:pointer;backdrop-filter:blur(6px);">
+                            <i class="fas fa-globe"></i>
+                            <span id="dashLangBtnText">العربية</span>
+                        </button>
+                        <button id="actionButton" class="hidden" style="align-items:center;gap:6px;padding:8px 18px;border-radius:10px;background:white;color:#7c3aed;font-size:13px;font-weight:700;border:none;cursor:pointer;">
+                            <i class="fas fa-plus"></i><span id="newCaseBtnText">New Case</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-8" style="margin-top:-24px;">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" id="statsContainer">
+                    <!-- Dynamic stats -->
+                </div>
+
+                <!-- Loading Spinner -->
+                <div id="loadingSpinner" class="hidden flex justify-center items-center py-12">
+                    <div class="loading-spinner"></div>
+                </div>
+
+                <!-- Content Area -->
+                <div id="contentArea" class="bg-white rounded-lg shadow p-6">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Edit Modal -->
+    <div id="userEditModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg max-w-md w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold" id="m_editUserTitle">Edit User</h2>
+                    <button onclick="closeUserEditModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <form id="userEditForm">
+                    <input type="hidden" name="user_id" id="editUserId">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" id="m_editUserNameLbl">Full Name</label>
+                            <input type="text" name="full_name" id="editFullName" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" id="m_editUserEmailLbl">Email</label>
+                            <input type="email" name="email" id="editEmail" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" id="m_editUserRoleLbl">Role</label>
+                            <select name="role" id="editRole" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="donor" id="m_roleOpt_donor">Donor</option>
+                                <option value="beneficiary" id="m_roleOpt_beneficiary">Beneficiary</option>
+                                <option value="charity" id="m_roleOpt_charity">Charity</option>
+                                <option value="admin" id="m_roleOpt_admin">Admin</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" id="m_editUserStatusLbl">Status</label>
+                            <select name="is_active" id="editStatus" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="true" id="m_statusOpt_active">Active</option>
+                                <option value="false" id="m_statusOpt_inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="flex justify-end space-x-3 pt-4">
+                            <button type="button" onclick="closeUserEditModal()"
+                                class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50" id="m_editUserCancelBtn">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                class="gradient-bg text-white px-6 py-2 rounded-lg hover:opacity-90" id="m_editUserSubmitBtn">
+                                Update User
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Case Creation Modal (for beneficiaries) -->
+    <div id="caseModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold" id="m_caseTitle">Create New Help Case</h2>
+                    <button onclick="closeCaseModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <form id="caseForm">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" id="m_caseTitleLbl">Title</label>
+                            <input type="text" name="title" id="caseFormTitle" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Brief title for your case">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" id="m_caseDescLbl">Description</label>
+                            <textarea name="description" id="caseFormDesc" rows="4" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Describe your situation in detail..."></textarea>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2" id="m_caseAmountLbl">Amount Needed (ريال)</label>
+                                <input type="number" name="amount_needed" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2" id="m_caseCatLbl">Category</label>
+                                <select name="category" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="medical" id="m_cat_medical">Medical</option>
+                                    <option value="rent" id="m_cat_rent">Rent/Housing</option>
+                                    <option value="education" id="m_cat_education">Education</option>
+                                    <option value="food" id="m_cat_food">Food</option>
+                                    <option value="utilities" id="m_cat_utilities">Utilities</option>
+                                    <option value="clothing" id="m_cat_clothing">Clothing</option>
+                                    <option value="other" id="m_cat_other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2" id="m_caseIncomeLbl">Monthly Income (ريال)</label>
+                                <input type="number" name="income"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2" id="m_caseFamilyLbl">Family Size</label>
+                                <input type="number" name="family_size"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" id="m_caseChildrenLbl">Number of Children</label>
+                            <input type="number" name="children_count"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div class="flex justify-end space-x-3 pt-4">
+                            <button type="button" onclick="closeCaseModal()"
+                                class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50" id="m_caseCancelBtn">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                class="gradient-bg text-white px-6 py-2 rounded-lg hover:opacity-90" id="m_caseSubmitBtn">
+                                Submit Case
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Case Details Modal -->
+    <div id="caseDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold" id="caseDetailTitle">Case Details</h2>
+                    <button onclick="closeCaseDetailsModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div id="caseDetailContent" class="space-y-4">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Donation Modal -->
+    <div id="donationModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg max-w-md w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold" id="m_donTitle">Make a Donation</h2>
+                    <button onclick="closeDonationModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <form id="donationForm">
+                    <input type="hidden" name="case_id" id="donationCaseId">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" id="m_donAmountLbl">Amount (ريال)</label>
+                            <input type="number" name="amount" id="donAmountInput" required min="1" step="0.01"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter amount">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" id="m_donMethodLbl">Payment Method</label>
+                            <select name="payment_method" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="card" id="m_pay_card">Credit/Debit Card</option>
+                                <option value="paypal" id="m_pay_paypal">PayPal</option>
+                                <option value="bank" id="m_pay_bank">Bank Transfer</option>
+                            </select>
+                        </div>
+                        <button type="submit" id="m_donSubmitBtn"
+                            class="w-full gradient-bg text-white py-2 px-4 rounded-lg hover:opacity-90">
+                            Complete Donation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Viewer Modal -->
+    <div id="documentViewerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div class="p-4 border-b flex justify-between items-center">
+                <h2 class="text-xl font-bold" id="documentViewerTitle">Document Viewer</h2>
+                <button onclick="closeDocumentViewer()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-4 h-[70vh] overflow-auto">
+                <iframe id="documentViewerFrame" class="w-full h-full border-0" src="about:blank"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Case Documents Modal -->
+    <div id="caseDocumentsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold" id="caseDocumentsTitle">Case Documents</h2>
+                    <button onclick="closeCaseDocumentsModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div id="caseDocumentsList" class="space-y-4">
+                    <!-- Documents will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token) {
+            window.location.href = 'index.html';
+        }
+
+        // Get role from URL or user object
+        const urlParams = new URLSearchParams(window.location.search);
+        const role = urlParams.get('role') || user.role;
+
+        const dashboardUrl = `${window.location.origin}/dashboard.html${role ? `?role=${encodeURIComponent(role)}` : ''}`;
+        localStorage.setItem('wisalDashboardUrl', dashboardUrl);
+
+        // Update user info
+        document.getElementById('userName').textContent = user.name || 'User';
+        document.getElementById('userRole').textContent = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'User';
+        document.getElementById('userInitials').textContent = 
+            (user.name ? user.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : 'U');
+        const bannerEl = document.getElementById('bannerUserName');
+        if (bannerEl) bannerEl.textContent = user.name || 'User';
+
+        // API Base URL
+        const API_BASE = 'http://127.0.0.1:5001';
+
+        // Helper function for authenticated fetch
+        async function authenticatedFetch(url, options = {}) {
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                ...options.headers
+            };
+            
+            const response = await fetch(url, {
+                ...options,
+                headers: headers
+            });
+            
+            if (response.status === 401) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = 'index.html';
+                throw new Error('Session expired');
+            }
+            
+            return response;
+        }
+
+        // Role-based menu items
+        const menuItems = {
+            donor: [
+                { icon: 'fa-home', text: 'Dashboard', action: 'dashboard' },
+                { icon: 'fa-heart', text: 'Browse Cases', action: 'browse-cases' },
+                { icon: 'fa-star', text: 'My Favorites', action: 'favorites' },
+                { icon: 'fa-history', text: 'Donation History', action: 'donations' },
+                { icon: 'fa-user-circle', text: 'My Profile', page: 'CSS/profile.html' }
+            ],
+            beneficiary: [
+                { icon: 'fa-home', text: 'Dashboard', action: 'dashboard' },
+                { icon: 'fa-file-alt', text: 'My Cases', action: 'my-cases' },
+                { icon: 'fa-plus-circle', text: 'New Case', action: 'new-case' },
+                { icon: 'fa-upload', text: 'Upload Documents', page: 'documents-upload.html' },
+                { icon: 'fa-user-circle', text: 'My Profile', page: 'CSS/profile.html' }
+            ],
+            admin: [
+                { icon: 'fa-home', text: 'Dashboard', action: 'dashboard' },
+                { icon: 'fa-users', text: 'Manage Users', action: 'users' },
+                { icon: 'fa-folder-open', text: 'Pending Cases', action: 'pending-cases' },
+                { icon: 'fa-check-circle', text: 'Approved Cases', action: 'approved-cases' },
+                { icon: 'fa-chart-bar', text: 'Analytics', action: 'analytics' },
+                { icon: 'fa-user-circle', text: 'My Profile', page: 'CSS/profile.html' }
+            ],
+            charity: [
+                { icon: 'fa-home', text: 'Dashboard', action: 'dashboard' },
+                { icon: 'fa-file-alt', text: 'My Cases', action: 'my-cases' },
+                { icon: 'fa-user-circle', text: 'My Profile', page: 'CSS/profile.html' }
+            ]
+        };
+
+        // Render sidebar menu
+        const sidebarNav = document.getElementById('sidebarNav');
+        sidebarNav.innerHTML = '';
+
+        if (menuItems[role]) {
+            menuItems[role].forEach(item => {
+                const button = document.createElement('button');
+                button.className = 'sidebar-item w-full flex items-center space-x-3 p-3 rounded-lg text-gray-700 mb-1 hover:bg-gray-100';
+                button.innerHTML = `
+                    <i class="fas ${item.icon} w-5"></i>
+                    <span class="flex-1 text-left">${item.text}</span>
+                `;
+                
+                if (item.page) {
+                    button.onclick = () => {
+                        window.location.href = item.page;
+                    };
+                } else {
+                    button.onclick = () => loadContent(item.action);
+                }
+                
+                sidebarNav.appendChild(button);
+            });
+        }
+
+        // Show/hide action button based on role
+        const actionButton = document.getElementById('actionButton');
+        if (role === 'beneficiary') {
+            actionButton.classList.remove('hidden');
+            actionButton.onclick = () => {
+                openCaseModal();
+            };
+        }
+
+        // Modal functions
+        function openCaseModal() {
+            document.getElementById('caseModal').classList.remove('hidden');
+            document.getElementById('caseModal').classList.add('flex');
+        }
+
+        function closeCaseModal() {
+            document.getElementById('caseModal').classList.add('hidden');
+            document.getElementById('caseModal').classList.remove('flex');
+        }
+
+        function openCaseDetailsModal() {
+            document.getElementById('caseDetailsModal').classList.remove('hidden');
+            document.getElementById('caseDetailsModal').classList.add('flex');
+        }
+
+        function closeCaseDetailsModal() {
+            document.getElementById('caseDetailsModal').classList.add('hidden');
+            document.getElementById('caseDetailsModal').classList.remove('flex');
+        }
+
+        function openDonationModal(caseId, event) {
+            if (event) event.stopPropagation();
+            document.getElementById('donationCaseId').value = caseId;
+            document.getElementById('donationModal').classList.remove('hidden');
+            document.getElementById('donationModal').classList.add('flex');
+        }
+
+        function closeDonationModal() {
+            document.getElementById('donationModal').classList.add('hidden');
+            document.getElementById('donationModal').classList.remove('flex');
+        }
+
+        function openUserEditModal(userId, fullName, email, role, isActive) {
+            document.getElementById('editUserId').value = userId;
+            document.getElementById('editFullName').value = fullName;
+            document.getElementById('editEmail').value = email;
+            document.getElementById('editRole').value = role;
+            document.getElementById('editStatus').value = isActive.toString();
+            document.getElementById('userEditModal').classList.remove('hidden');
+            document.getElementById('userEditModal').classList.add('flex');
+        }
+
+        function closeUserEditModal() {
+            document.getElementById('userEditModal').classList.add('hidden');
+            document.getElementById('userEditModal').classList.remove('flex');
+        }
+
+        // Document Viewer Functions
+        function openDocumentViewer(title, url) {
+            document.getElementById('documentViewerTitle').textContent = title;
+            document.getElementById('documentViewerFrame').src = url;
+            document.getElementById('documentViewerModal').classList.remove('hidden');
+            document.getElementById('documentViewerModal').classList.add('flex');
+        }
+
+        function closeDocumentViewer() {
+            document.getElementById('documentViewerModal').classList.add('hidden');
+            document.getElementById('documentViewerModal').classList.remove('flex');
+            document.getElementById('documentViewerFrame').src = 'about:blank';
+        }
+
+        // View document with proper authentication
+        async function viewDocument(docId, filename) {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    alert('Please login first');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/api/documents/${docId}/view`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to load document');
+                }
+
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                
+                const fileExt = filename.split('.').pop().toLowerCase();
+                
+                if (fileExt === 'pdf' || ['jpg', 'jpeg', 'png'].includes(fileExt)) {
+                    openDocumentViewer(filename, blobUrl);
+                } else {
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+                }
+            } catch (error) {
+                console.error('Error viewing document:', error);
+                alert('Error viewing document: ' + error.message);
+            }
+        }
+
+        // Download document
+        async function downloadDocument(docId, filename) {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    alert('Please login first');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/api/documents/${docId}/download`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to download document');
+                }
+
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+            } catch (error) {
+                console.error('Error downloading document:', error);
+                alert('Error downloading document: ' + error.message);
+            }
+        }
+
+        // Load documents for a specific case
+      // Load documents for a specific case
+async function loadCaseDocuments(caseId, caseTitle) {
+    try {
+        console.log('Loading documents for case:', caseId);
+        
+        // Store current case ID for refresh
+        window.currentCaseId = caseId;
+        
+        const response = await authenticatedFetch(`${API_BASE}/api/documents/case/${caseId}`);
+        
+        console.log('Response status:', response.status);
+        
+        if (response.status === 403) {
+            const error = await response.json();
+            console.error('Permission denied:', error);
+            
+            let message = '';
+            if (role === 'donor') {
+                message = 'Documents are only available for approved cases. This case may not be approved yet.';
+            } else if (role === 'beneficiary') {
+                message = 'You can only view documents for your own cases.';
+            } else {
+                message = error.error || 'You do not have permission to view these documents.';
+            }
+            
+            alert(message);
+            return;
+        }
+        
+        if (!response.ok) {
+            throw new Error(`Failed to fetch documents: ${response.status}`);
+        }
+
+        const documents = await response.json();
+        console.log('Documents received:', documents);
+        
+        const modalTitle = document.getElementById('caseDocumentsTitle');
+        modalTitle.textContent = `${T('documents')} - ${caseTitle}`;
+        
+        const documentsList = document.getElementById('caseDocumentsList');
+        
+        if (documents.length === 0) {
+            documentsList.innerHTML = `<p class="text-gray-500 text-center py-8">${T('noDocsFound')}</p>`;
+        } else {
+            let html = '';
+            documents.forEach(doc => {
+                const statusBadge = doc.verified === true ? 
+                    `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">${T('verified')}</span>` :
+                    doc.verified === false ? 
+                    `<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">${T('rejected')}</span>` :
+                    `<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">${T('pending')}</span>`;
+                
+                const fileIcon = doc.filename.toLowerCase().endsWith('.pdf') ? 'fa-file-pdf text-red-500' :
+                                doc.filename.toLowerCase().match(/\.(jpg|jpeg|png)$/) ? 'fa-file-image text-blue-500' :
+                                'fa-file-alt text-gray-500';
+                
+                html += `
+                    <div class="border rounded-lg p-4 document-card bg-white hover:shadow-md">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas ${fileIcon} text-2xl"></i>
+                                <div>
+                                    <h3 class="font-medium">${doc.filename}</h3>
+                                    <p class="text-xs text-gray-500">
+                                        ${T('uploaded')}: ${new Date(doc.uploaded_at).toLocaleDateString()}
+                                        ${doc.file_size ? ` • ${(doc.file_size / 1024).toFixed(1)} KB` : ''}
+                                    </p>
+                                    ${doc.notes ? `<p class="text-xs text-gray-400 mt-1">${doc.notes}</p>` : ''}
+                                </div>
+                            </div>
+                            ${statusBadge}
+                        </div>
+                        <div class="flex justify-end space-x-2 mt-3 pt-2 border-t">
+                            <button onclick="viewDocument(${doc.id}, '${doc.filename}')" 
+                                class="text-blue-600 hover:text-blue-800 text-sm px-3 py-1 rounded hover:bg-blue-50">
+                                <i class="fas fa-eye mr-1"></i> View
+                            </button>
+                            <button onclick="downloadDocument(${doc.id}, '${doc.filename}')" 
+                                class="text-green-600 hover:text-green-800 text-sm px-3 py-1 rounded hover:bg-green-50">
+                                <i class="fas fa-download mr-1"></i> Download
+                            </button>
+                            ${role === 'admin' ? `
+                                <button onclick="verifyDocument(${doc.id}, true)" 
+                                    class="text-green-600 hover:text-green-800 text-sm px-3 py-1 rounded hover:bg-green-50">
+                                    <i class="fas fa-check mr-1"></i> Approve
+                                </button>
+                                <button onclick="verifyDocument(${doc.id}, false)" 
+                                    class="text-red-600 hover:text-red-800 text-sm px-3 py-1 rounded hover:bg-red-50">
+                                    <i class="fas fa-times mr-1"></i> Reject
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            documentsList.innerHTML = html;
+        }
+        
+        document.getElementById('caseDocumentsModal').classList.remove('hidden');
+        document.getElementById('caseDocumentsModal').classList.add('flex');
+        
+    } catch (error) {
+        console.error('Error loading case documents:', error);
+        alert('Error loading documents: ' + error.message);
+    }
+}
+
+        function closeCaseDocumentsModal() {
+            document.getElementById('caseDocumentsModal').classList.add('hidden');
+            document.getElementById('caseDocumentsModal').classList.remove('flex');
+        }
+
+        // Admin verify document
+      // Admin verify document
+async function verifyDocument(docId, verified) {
+    if (!confirm(`Are you sure you want to ${verified ? 'approve' : 'reject'} this document?`)) return;
+    
+    try {
+        const token = localStorage.getItem('token');
+        console.log('Verifying document:', docId, 'with action:', verified);
+        
+        const response = await fetch(`${API_BASE}/api/documents/${docId}/verify`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ verified: verified })
+        });
+        
+        console.log('Verify response status:', response.status);
+        
+        if (response.ok) {
+            const result = await response.json();
+            alert(result.message || `Document ${verified ? 'approved' : 'rejected'} successfully`);
+            
+            // Refresh the current view
+            const modalContent = document.getElementById('caseDocumentsList');
+            if (modalContent) {
+                // Get case ID from modal title
+                const titleText = document.getElementById('caseDocumentsTitle').textContent;
+                const match = titleText.match(/Documents? -?\s*(.+)/);
+                if (match && match[1]) {
+                    // Find the case ID from the documents list
+                    const caseId = window.currentCaseId;
+                    if (caseId) {
+                        loadCaseDocuments(caseId);
+                    }
+                }
+            }
+        } else {
+            const error = await response.json();
+            console.error('Verify error:', error);
+            alert(error.error || 'Error verifying document');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred: ' + error.message);
+    }
+}
+        // Load all documents (for admin)
+        async function loadAllDocuments() {
+            const contentArea = document.getElementById('contentArea');
+            
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/api/documents/my-documents`);
+                const documents = await response.json();
+                
+                let html = `
+                    <h2 class="text-xl font-semibold mb-4">${T('allDocs')}</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                `;
+                
+                if (documents.length === 0) {
+                    html = `<p class="text-gray-500 text-center py-8">${T('noDocsFound')}</p>`;
+                } else {
+                    documents.forEach(doc => {
+                        const statusBadge = doc.verified === true ? 
+                            `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">${T('verified')}</span>` :
+                            doc.verified === false ? 
+                            `<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">${T('rejected')}</span>` :
+                            `<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">${T('pending')}</span>`;
+                        
+                        html += `
+                            <div class="border rounded-lg p-4 document-card bg-white hover:shadow-md">
+                                <div class="flex items-start justify-between mb-2">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-file-pdf text-2xl text-red-500 mr-2"></i>
+                                        <div>
+                                            <p class="font-medium text-sm">${doc.filename}</p>
+                                            <p class="text-xs text-gray-500">${T('caseLbl')}: ${doc.case_title}</p>
+                                        </div>
+                                    </div>
+                                    ${statusBadge}
+                                </div>
+                                <p class="text-xs text-gray-400">${T('uploaded')}: ${new Date(doc.uploaded_at).toLocaleDateString()}</p>
+                                <p class="text-xs text-gray-400">${T('byLbl')}: ${doc.uploaded_by || T('unknown')}</p>
+                                <div class="flex justify-end space-x-2 mt-3 pt-2 border-t">
+                                    <button onclick="viewDocument(${doc.id}, '${doc.filename}')" class="text-blue-600 hover:text-blue-800 text-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button onclick="downloadDocument(${doc.id}, '${doc.filename}')" class="text-green-600 hover:text-green-800 text-sm">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += '</div>';
+                contentArea.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading all documents:', error);
+                contentArea.innerHTML = `<p class="text-red-500">${T('errLoading')}</p>`;
+            }
+        }
+
+        // Show/hide loading spinner
+        function showLoading() {
+            document.getElementById('loadingSpinner').classList.remove('hidden');
+            document.getElementById('contentArea').classList.add('opacity-50');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingSpinner').classList.add('hidden');
+            document.getElementById('contentArea').classList.remove('opacity-50');
+        }
+
+        // Load content based on action
+        // Translated page titles map
+        const pageTitleMap = {
+            ar: { 'dashboard':'لوحة التحكم', 'browse-cases':'تصفح الحالات', 'my-cases':'حالاتي',
+                  'pending-cases':'الحالات المعلقة', 'approved-cases':'الحالات المعتمدة',
+                  'favorites':'المفضلة', 'donations':'التبرعات', 'users':'المستخدمون',
+                'analytics':'الإحصائيات', 'all-documents':'المستندات', 'new-case':'حالة جديدة', 'profile':'الملف الشخصي' },
+            en: { 'dashboard':'Dashboard', 'browse-cases':'Browse Cases', 'my-cases':'My Cases',
+                  'pending-cases':'Pending Cases', 'approved-cases':'Approved Cases',
+                  'favorites':'Favorites', 'donations':'Donations', 'users':'Users',
+                  'analytics':'Analytics', 'all-documents':'Documents', 'new-case':'New Case', 'profile':'Profile' }
+        };
+
+        async function loadContent(action) {
+            showLoading();
+            const contentArea = document.getElementById('contentArea');
+            document.getElementById('pageTitle').textContent = (pageTitleMap[dashLang] && pageTitleMap[dashLang][action]) || action.split('-').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            
+            try {
+                switch(action) {
+                    case 'dashboard':
+                        await loadDashboard();
+                        break;
+                    case 'browse-cases':
+                        await loadBrowseCases();
+                        break;
+                    case 'my-cases':
+                        await loadMyCases();
+                        break;
+                    case 'pending-cases':
+                        await loadPendingCases();
+                        break;
+                    case 'approved-cases':
+                        await loadApprovedCases();
+                        break;
+                    case 'favorites':
+                        await loadFavorites();
+                        break;
+                    case 'donations':
+                        await loadDonations();
+                        break;
+                    case 'users':
+                        await loadUsers();
+                        break;
+                    case 'analytics':
+                        await loadAnalytics();
+                        break;
+                    case 'all-documents':
+                        await loadAllDocuments();
+                        break;
+                    case 'new-case':
+                        openCaseModal();
+                        hideLoading();
+                        break;
+                    case 'profile':
+                        await loadProfile();
+                        break;
+                    default:
+                        contentArea.innerHTML = '<p class="text-gray-500">Select an option from the menu</p>';
+                        hideLoading();
+                }
+            } catch (error) {
+                console.error('Error loading content:', error);
+                contentArea.innerHTML = `<p class="text-red-500">${T('errBackend')}</p>`;
+                hideLoading();
+            }
+        }
+
+        // Load dashboard
+        async function loadDashboard() {
+            const contentArea = document.getElementById('contentArea');
+            
+            if (role === 'donor') {
+                contentArea.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-heart text-6xl text-gray-300 mb-4"></i>
+                        <h3 class="text-xl font-medium text-gray-700 mb-2">${T('welcomeDash')}</h3>
+                        <p class="text-gray-500 mb-6">${T('browseDiffToday')}</p>
+                        <button onclick="loadContent('browse-cases')" class="gradient-bg text-white px-6 py-2 rounded-lg">
+                            ${T('browseCases')}
+                        </button>
+                    </div>
+                `;
+                hideLoading();
+            } else if (role === 'beneficiary') {
+                contentArea.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-file-alt text-6xl text-gray-300 mb-4"></i>
+                        <h3 class="text-xl font-medium text-gray-700 mb-2">${T('welcomeDash')}</h3>
+                        <p class="text-gray-500 mb-6">${T('createTrackCases')}</p>
+                        <button onclick="openCaseModal()" class="gradient-bg text-white px-6 py-2 rounded-lg">
+                            ${T('createNewCase')}
+                        </button>
+                    </div>
+                `;
+                hideLoading();
+            } else if (role === 'admin') {
+                await loadAdminDashboard();
+            } else {
+                hideLoading();
+            }
+        }
+
+        // Load admin dashboard
+        async function loadAdminDashboard() {
+            const contentArea = document.getElementById('contentArea');
+            const statsContainer = document.getElementById('statsContainer');
+            
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/api/admin/dashboard/stats`);
+                const stats = await response.json();
+                
+                statsContainer.innerHTML = `
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-blue-100 rounded-full">
+                                <i class="fas fa-users text-blue-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm text-gray-500">${T('totalUsers')}</p>
+                                <p class="text-2xl font-semibold">${stats.total_users || 0}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-green-100 rounded-full">
+                                <i class="fas fa-folder-open text-green-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm text-gray-500">${T('totalCases')}</p>
+                                <p class="text-2xl font-semibold">${stats.total_cases || 0}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-yellow-100 rounded-full">
+                                <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm text-gray-500">${T('pendingCases')}</p>
+                                <p class="text-2xl font-semibold">${stats.pending_cases || 0}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-purple-100 rounded-full">
+                                <i class="fas fa-coins text-purple-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm text-gray-500">${T('totalDonations')}</p>
+                                <p class="text-2xl font-semibold">${stats.total_donations || 0} ريال</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                let recentCasesHtml = `<h2 class="text-xl font-semibold mb-4">${T('recentCases')}</h2>`;
+                if (stats.recent_cases && stats.recent_cases.length > 0) {
+                    recentCasesHtml += '<div class="space-y-4">';
+                    stats.recent_cases.forEach(c => {
+                        recentCasesHtml += `
+                            <div class="border rounded-lg p-4">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h3 class="font-medium">${c.title}</h3>
+                                        <p class="text-sm text-gray-500">${T('statusLbl')}: ${c.status}</p>
+                                    </div>
+                                    <span class="text-sm text-gray-400">${new Date(c.created_at).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    recentCasesHtml += '</div>';
+                } else {
+                    recentCasesHtml += `<p class="text-gray-500">${T('noRecentCases')}</p>`;
+                }
+                
+                contentArea.innerHTML = recentCasesHtml;
+                
+            } catch (error) {
+                console.error('Error loading admin dashboard:', error);
+                contentArea.innerHTML = `<p class="text-red-500">${T('errLoading')}</p>`;
+            }
+            
+            hideLoading();
+        }
+
+        // Load browse cases (for donors)
+        async function loadBrowseCases() {
+            const contentArea = document.getElementById('contentArea');
+            
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/api/cases/approved`);
+                const cases = await response.json();
+                
+                let html = `
+                    <div class="mb-6 flex flex-wrap gap-4 justify-between items-center">
+                        <h2 class="text-xl font-semibold">${T('availableCases')}</h2>
+                        <div class="flex flex-wrap gap-2">
+                            <select id="categoryFilter" class="px-3 py-2 border rounded-lg text-sm">
+                                <option value="">${T('allCategories')}</option>
+                                <option value="medical">${T('medical')}</option>
+                                <option value="rent">${T('rent')}</option>
+                                <option value="education">${T('education')}</option>
+                                <option value="food">${T('food')}</option>
+                            </select>
+                            <select id="urgencyFilter" class="px-3 py-2 border rounded-lg text-sm">
+                                <option value="">${T('allUrgency')}</option>
+                                <option value="critical">${T('critical')}</option>
+                                <option value="high">${T('high')}</option>
+                                <option value="medium">${T('medium')}</option>
+                                <option value="low">${T('low')}</option>
+                            </select>
+                            <input type="text" id="searchInput" placeholder="${T('searchDots')}" 
+                                class="px-3 py-2 border rounded-lg text-sm">
+                            <button onclick="applyFilters()" class="gradient-bg text-white px-4 py-2 rounded-lg text-sm">
+                                ${T('apply')}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="casesGrid">
+                `;
+                
+                if (cases.length === 0) {
+                    html = `<p class="text-gray-500 text-center py-12">${T('noApprovedCases')}</p>`;
+                } else {
+                    cases.forEach(c => {
+                        const priorityClass = c.urgency_level === 'critical' ? 'priority-critical' :
+                                             c.urgency_level === 'high' ? 'priority-high' :
+                                             c.urgency_level === 'medium' ? 'priority-medium' :
+                                             'priority-low';
+                        
+                        html += `
+                            <div class="border rounded-lg p-4 hover:shadow-lg transition">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="font-semibold text-lg">${c.title}</h3>
+                                    <span class="px-2 py-1 rounded text-xs ${priorityClass}">
+                                        ${c.urgency_level}
+                                    </span>
+                                </div>
+                                <p class="text-gray-600 text-sm mb-3">${c.description}</p>
+                                <div class="mb-2">
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span>${T('raised')}: ${c.amount_raised || 0} ريال</span>
+                                        <span>${T('goal')}: ${c.amount_needed} ريال</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="gradient-bg rounded-full h-2" style="width: ${c.progress || 0}%"></div>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center mt-4">
+                                    <div class="flex space-x-2">
+                                        <button onclick="toggleFavorite(${c.id}, event)" class="text-gray-400 hover:text-yellow-500" title="Add to favorites">
+                                            <i class="far fa-star"></i>
+                                        </button>
+                                        <button onclick="loadCaseDocuments(${c.id}, '${c.title}')" class="text-blue-600 hover:text-blue-800" title="View documents">
+                                            <i class="fas fa-file-alt"></i>
+                                        </button>
+                                    </div>
+                                    <button onclick="openDonationModal(${c.id}, event)" 
+                                        class="gradient-bg text-white px-4 py-2 rounded-lg text-sm hover:opacity-90">
+                                        ${T('donate')}
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += '</div>';
+                contentArea.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading cases:', error);
+                contentArea.innerHTML = `<p class="text-red-500">${T('errBackend')}</p>`;
+            }
+            
+            hideLoading();
+        }
+
+        // Load my cases (for beneficiaries)
+        async function loadMyCases() {
+            const contentArea = document.getElementById('contentArea');
+            
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/api/cases/my-cases`);
+                const cases = await response.json();
+                
+                let html = '<div class="space-y-4">';
+                
+                if (cases.length === 0) {
+                    html += `
+                        <div class="text-center py-12">
+                            <i class="fas fa-folder-open text-6xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500">${T('noCasesYet')}</p>
+                            <button onclick="openCaseModal()" class="mt-4 gradient-bg text-white px-6 py-2 rounded-lg">
+                                ${T('createFirstCase')}
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    cases.forEach(c => {
+                        const statusClass = c.status === 'approved' ? 'status-approved' :
+                                           c.status === 'pending' ? 'status-pending' :
+                                           'status-rejected';
+                        
+                        const priorityClass = c.urgency_level === 'critical' ? 'priority-critical' :
+                                             c.urgency_level === 'high' ? 'priority-high' :
+                                             c.urgency_level === 'medium' ? 'priority-medium' :
+                                             'priority-low';
+                        
+                        const progress = c.amount_needed > 0 ? (c.amount_raised / c.amount_needed * 100) : 0;
+                        
+                        html += `
+                            <div class="border rounded-lg p-4 hover:shadow-lg transition">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <h3 class="font-semibold text-lg">${c.title}</h3>
+                                        <p class="text-gray-600 text-sm mb-2">${c.description}</p>
+                                    </div>
+                                    <div class="flex space-x-2 ml-4">
+                                        <span class="px-2 py-1 rounded text-xs ${priorityClass}">
+                                            ${c.urgency_level}
+                                        </span>
+                                        <span class="px-2 py-1 rounded text-xs ${statusClass}">
+                                            ${c.status}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-4 mt-4 text-sm">
+                                    <div>
+                                        <span class="text-gray-500">${T('needed')}:</span>
+                                        <span class="font-medium ml-1">${c.amount_needed} ريال</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500">${T('raised')}:</span>
+                                        <span class="font-medium ml-1">${c.amount_raised} ريال</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500">${T('priority')}:</span>
+                                        <span class="font-medium ml-1">${c.priority_score}</span>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="gradient-bg rounded-full h-2" style="width: ${progress}%"></div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex justify-end">
+                                    <button onclick="loadCaseDocuments(${c.id}, '${c.title}')" 
+                                        class="text-blue-600 hover:text-blue-800 text-sm">
+                                        <i class="fas fa-file-alt mr-1"></i> ${T('viewDocs')}
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += '</div>';
+                contentArea.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading cases:', error);
+                contentArea.innerHTML = `<p class="text-red-500">${T('errBackend')}</p>`;
+            }
+            
+            hideLoading();
+        }
+
+        // Load pending cases (for admin)
+      async function loadPendingCases() {
+    const contentArea = document.getElementById('contentArea');
+    
+    try {
+        // Get filter values
+        const statusFilter = document.getElementById('statusFilter')?.value || 'all';
+        const searchFilter = document.getElementById('searchFilter')?.value || '';
+        const priorityFilter = document.getElementById('priorityFilter')?.value || 'all';
+        const dateFilter = document.getElementById('dateFilter')?.value || 'all';
+        
+        // Build URL with filters
+        let url = `${API_BASE}/api/admin/cases/pending`;
+        const params = new URLSearchParams();
+        if (statusFilter !== 'all') params.append('status', statusFilter);
+        if (searchFilter) params.append('search', searchFilter);
+        if (priorityFilter !== 'all') params.append('priority', priorityFilter);
+        if (dateFilter !== 'all') params.append('date', dateFilter);
+        
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+        
+        const response = await authenticatedFetch(url);
+        const cases = await response.json();
+        
+        // Calculate stats
+        const pendingCount = cases.filter(c => c.status === 'pending').length;
+        const moreInfoCount = cases.filter(c => c.status === 'more_info').length;
+        const totalCount = cases.length;
+        
+        let html = `
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-4">${T('caseMgmt')}</h2>
+                
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <p class="text-sm text-blue-600">${T('totalPending')}</p>
+                        <p class="text-2xl font-bold">${totalCount}</p>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <p class="text-sm text-yellow-600">${T('awaitingReview')}</p>
+                        <p class="text-2xl font-bold">${pendingCount}</p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <p class="text-sm text-purple-600">${T('moreInfoNeeded')}</p>
+                        <p class="text-2xl font-bold">${moreInfoCount}</p>
+                    </div>
+                </div>
+                
+                <!-- Filter Section -->
+                <div class="bg-white p-4 rounded-lg shadow mb-6">
+                    <h3 class="font-medium mb-3">${T('filterCases')}</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">${T('statusLbl')}</label>
+                            <select id="statusFilter" class="w-full px-3 py-2 border rounded-lg text-sm">
+                                <option value="all">${T('allStatus')}</option>
+                                <option value="pending">${T('pendingReview')}</option>
+                                <option value="more_info">${T('moreInfoNeeded')}</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">${T('priority')}</label>
+                            <select id="priorityFilter" class="w-full px-3 py-2 border rounded-lg text-sm">
+                                <option value="all">${T('allPriorities')}</option>
+                                <option value="high">${T('highPri')}</option>
+                                <option value="medium">${T('mediumPri')}</option>
+                                <option value="low">${T('lowPri')}</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">${T('dateRange')}</label>
+                            <select id="dateFilter" class="w-full px-3 py-2 border rounded-lg text-sm">
+                                <option value="all">${T('allTime')}</option>
+                                <option value="today">${T('today')}</option>
+                                <option value="week">${T('thisWeek')}</option>
+                                <option value="month">${T('thisMonth')}</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">${T('search')}</label>
+                            <input type="text" id="searchFilter" placeholder="${T('searchCases')}" 
+                                class="w-full px-3 py-2 border rounded-lg text-sm">
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end mt-4 space-x-2">
+                        <button onclick="resetFilters()" class="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">
+                            ${T('resetFilters')}
+                        </button>
+                        <button onclick="loadPendingCases()" class="gradient-bg text-white px-4 py-2 rounded-lg text-sm">
+                            ${T('applyFilters')}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="space-y-4" id="casesList">
+        `;
+        
+        if (cases.length === 0) {
+            html += `
+                <div class="text-center py-12">
+                    <i class="fas fa-check-circle text-6xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-500">${T('noMatchFilters')}</p>
+                </div>
+            `;
+        } else {
+            cases.forEach(c => {
+                const statusBadge = c.status === 'pending' ? 
+                    `<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">${T('pendingReview')}</span>` :
+                    `<span class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">${T('moreInfoNeeded')}</span>`;
+                
+                const priorityColor = c.priority_score >= 80 ? 'text-red-600' :
+                                     c.priority_score >= 50 ? 'text-orange-600' :
+                                     'text-green-600';
+                
+                const daysAgo = Math.floor((new Date() - new Date(c.created_at)) / (1000 * 60 * 60 * 24));
+                const timeAgo = daysAgo === 0 ? T('today') :
+                               daysAgo === 1 ? T('yesterday') :
+                               `${daysAgo} ${T('daysAgo')}`;
+                
+                html += `
+                    <div class="border rounded-lg p-4 hover:shadow-lg transition bg-white">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <h3 class="font-semibold text-lg">${c.title}</h3>
+                                    ${statusBadge}
+                                </div>
+                                <p class="text-gray-600 text-sm mb-2">${c.description}</p>
+                                <div class="flex flex-wrap gap-4 text-xs text-gray-500">
+                                    <span><i class="far fa-user mr-1"></i> ${c.beneficiary_name || 'Unknown'}</span>
+                                    <span><i class="far fa-calendar mr-1"></i> ${new Date(c.created_at).toLocaleDateString()} (${timeAgo})</span>
+                                    <span><i class="far fa-clock mr-1"></i> ${c.urgency_level || 'N/A'} ${T('urgency')}</span>
+                                </div>
+                            </div>
+                            <div class="text-right ml-4">
+                                <div class="text-2xl font-bold ${priorityColor}">${c.priority_score}</div>
+                                <p class="text-xs text-gray-500">${T('priority')}</p>
+                            </div>
+                        </div>
+                        
+                        ${c.ai_analysis ? `
+                            <div class="mt-4 bg-blue-50 p-3 rounded-lg">
+                                <p class="text-sm font-medium text-blue-800 mb-2 flex items-center">
+                                    <i class="fas fa-robot mr-2"></i>${T('aiAnalysis')}
+                                </p>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                                    <div>
+                                        <span class="text-xs text-blue-600">${T('urgency')}</span>
+                                        <div class="font-medium">${(c.ai_analysis.urgency_score * 100).toFixed(0)}%</div>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs text-blue-600">${T('medicalRisk')}</span>
+                                        <div class="font-medium">${(c.ai_analysis.medical_risk_score * 100).toFixed(0)}%</div>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs text-blue-600">${T('children')}</span>
+                                        <div class="font-medium">${c.ai_analysis.children_present ? T('yes') : T('no')}</div>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs text-blue-600">${T('category')}</span>
+                                        <div class="font-medium">${c.ai_analysis.detected_category || 'N/A'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="flex justify-between items-center mt-4 pt-3 border-t">
+                            <div class="flex space-x-2">
+                                <button onclick="loadCaseDocuments(${c.id}, '${c.title}')" 
+                                    class="text-blue-600 hover:text-blue-800 text-sm px-3 py-1 rounded hover:bg-blue-50">
+                                    <i class="fas fa-file-alt mr-1"></i> ${T('documents')}
+                                </button>
+                                <button onclick="viewCaseDetails(${c.id})" 
+                                    class="text-gray-600 hover:text-gray-800 text-sm px-3 py-1 rounded hover:bg-gray-50">
+                                    <i class="fas fa-info-circle mr-1"></i> ${T('details')}
+                                </button>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="reviewCase(${c.id}, 'approve')" 
+                                    class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700">
+                                    ${T('approve')}
+                                </button>
+                                <button onclick="reviewCase(${c.id}, 'reject')" 
+                                    class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700">
+                                    ${T('reject')}
+                                </button>
+                                <button onclick="openRequestModal(${c.id}, '${c.title}')" 
+                                    class="bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-yellow-700">
+                                    ${T('requestInfo')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
+        html += '</div>';
+        contentArea.innerHTML = html;
+        
+        // Add event listeners for filters
+        document.getElementById('statusFilter')?.addEventListener('change', loadPendingCases);
+        document.getElementById('priorityFilter')?.addEventListener('change', loadPendingCases);
+        document.getElementById('dateFilter')?.addEventListener('change', loadPendingCases);
+        document.getElementById('searchFilter')?.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') loadPendingCases();
+        });
+        
+    } catch (error) {
+        console.error('Error loading pending cases:', error);
+        contentArea.innerHTML = `<p class="text-red-500">${T('errBackend')}</p>`;
+    }
+    
+    hideLoading();
+}
+
+// Reset filters function
+function resetFilters() {
+    document.getElementById('statusFilter').value = 'all';
+    document.getElementById('priorityFilter').value = 'all';
+    document.getElementById('dateFilter').value = 'all';
+    document.getElementById('searchFilter').value = '';
+    loadPendingCases();
+}
+// Open request info modal
+function openRequestModal(caseId, caseTitle) {
+    // Create modal if it doesn't exist
+    if (!document.getElementById('requestInfoModal')) {
+        const modal = document.createElement('div');
+        modal.id = 'requestInfoModal';
+        modal.className = 'fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50';
+        modal.innerHTML = `
+            <div class="bg-white rounded-lg max-w-lg w-full p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">${T('reqMoreInfo')}</h2>
+                    <button onclick="closeRequestModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="mb-4">
+                    <p class="text-sm text-gray-600">${T('caseLbl')}: <span id="requestCaseTitle" class="font-medium"></span></p>
+                </div>
+                <textarea id="requestNotes" rows="4" 
+                    class="w-full px-3 py-2 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="${T('whatInfoNeeded')}"></textarea>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">${T('reqDocs')}:</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600" value="id_proof">
+                            <span class="ml-2 text-sm">${T('idProof')}</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600" value="income_proof">
+                            <span class="ml-2 text-sm">${T('incomeProof')}</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600" value="medical_report">
+                            <span class="ml-2 text-sm">${T('medicalReport')}</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="form-checkbox h-4 w-4 text-blue-600" value="other">
+                            <span class="ml-2 text-sm">${T('otherSpecify')}</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button onclick="closeRequestModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-50">
+                        ${T('cancel')}
+                    </button>
+                    <button onclick="submitInfoRequest(${caseId})" class="gradient-bg text-white px-6 py-2 rounded-lg hover:opacity-90">
+                        ${T('sendRequest')}
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    document.getElementById('requestCaseTitle').textContent = caseTitle;
+    document.getElementById('requestInfoModal').classList.remove('hidden');
+    document.getElementById('requestInfoModal').classList.add('flex');
+}
+async function submitInfoRequest(caseId) {
+    const notes = document.getElementById('requestNotes').value;
+    const selectedDocs = [];
+    document.querySelectorAll('#requestInfoModal input[type="checkbox"]:checked').forEach(cb => {
+        selectedDocs.push(cb.value);
+    });
+    
+    if (!notes && selectedDocs.length === 0) {
+        alert('Please provide notes or select documents to request');
+        return;
+    }
+    
+    const requestData = {
+        action: 'more_info',
+        notes: notes + (selectedDocs.length > 0 ? '\nRequired Documents: ' + selectedDocs.join(', ') : '')
+    };
+    
+    try {
+        const response = await authenticatedFetch(`${API_BASE}/api/admin/cases/${caseId}/review`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData)
+        });
+        
+        if (response.ok) {
+            alert('Information request sent successfully');
+            closeRequestModal();
+            loadPendingCases();
+        } else {
+            const error = await response.json();
+            alert(error.error || 'Error sending request');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred');
+    }
+}
+function closeRequestModal() {
+    document.getElementById('requestInfoModal').classList.add('hidden');
+    document.getElementById('requestInfoModal').classList.remove('flex');
+    document.getElementById('requestNotes').value = '';
+    document.querySelectorAll('#requestInfoModal input[type="checkbox"]').forEach(cb => cb.checked = false);
+}
+        // Load approved cases (for admin)
+        async function loadApprovedCases() {
+            const contentArea = document.getElementById('contentArea');
+            
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/api/cases/approved`);
+                const cases = await response.json();
+                
+                let html = '<div class="space-y-4">';
+                
+                if (cases.length === 0) {
+                    html += `
+                        <div class="text-center py-12">
+                            <i class="fas fa-check-circle text-6xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500">${T('noApprovedAdmin')}</p>
+                        </div>
+                    `;
+                } else {
+                    cases.forEach(c => {
+                        const priorityClass = c.urgency_level === 'critical' ? 'priority-critical' :
+                                             c.urgency_level === 'high' ? 'priority-high' :
+                                             c.urgency_level === 'medium' ? 'priority-medium' :
+                                             'priority-low';
+                        
+                        const progress = c.amount_needed > 0 ? (c.amount_raised / c.amount_needed * 100) : 0;
+                        
+                        html += `
+                            <div class="border rounded-lg p-4 hover:shadow-lg transition">
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <h3 class="font-semibold text-lg">${c.title}</h3>
+                                        <p class="text-gray-600 text-sm mb-2">${c.description}</p>
+                                        <p class="text-xs text-gray-500">${T('category')}: ${c.category} | ${T('urgency')}: ${c.urgency_level}</p>
+                                    </div>
+                                    <span class="px-2 py-1 rounded text-xs ${priorityClass} ml-4">
+                                        ${T('priority')}: ${c.priority_score}
+                                    </span>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span>${T('raised')}: ${c.amount_raised || 0} ريال</span>
+                                        <span>${T('goal')}: ${c.amount_needed} ريال</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="gradient-bg rounded-full h-2" style="width: ${progress}%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-end mt-4">
+                                    <button onclick="loadCaseDocuments(${c.id}, '${c.title}')" 
+                                        class="text-blue-600 hover:text-blue-800 text-sm">
+                                        <i class="fas fa-file-alt mr-1"></i> ${T('viewDocs')}
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += '</div>';
+                contentArea.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading approved cases:', error);
+                contentArea.innerHTML = `<p class="text-red-500">${T('errLoading')}</p>`;
+            }
+            
+            hideLoading();
+        }
+
+        // Load favorites (for donors)
+        async function loadFavorites() {
+            const contentArea = document.getElementById('contentArea');
+            
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/api/donations/favorites`);
+                const favorites = await response.json();
+                
+                let html = '<div class="space-y-4">';
+                
+                if (favorites.length === 0) {
+                    html += `
+                        <div class="text-center py-12">
+                            <i class="fas fa-star text-6xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500">${T('noFavYet')}</p>
+                            <button onclick="loadContent('browse-cases')" class="mt-4 gradient-bg text-white px-6 py-2 rounded-lg">
+                                ${T('browseCases')}
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    favorites.forEach(f => {
+                        const progress = f.amount_needed > 0 ? (f.amount_raised / f.amount_needed * 100) : 0;
+                        
+                        html += `
+                            <div class="border rounded-lg p-4 hover:shadow-lg transition">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h3 class="font-semibold text-lg">${f.case_title}</h3>
+                                        <p class="text-gray-600 text-sm">${f.case_description}</p>
+                                    </div>
+                                    <button onclick="removeFavorite(${f.case_id}, event)" 
+                                        class="text-yellow-500 hover:text-yellow-600">
+                                        <i class="fas fa-star"></i>
+                                    </button>
+                                </div>
+                                <div class="mt-4">
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span>${T('raised')}: ${f.amount_raised || 0} ريال</span>
+                                        <span>${T('goal')}: ${f.amount_needed} ريال</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="gradient-bg rounded-full h-2" style="width: ${progress}%"></div>
+                                    </div>
+                                </div>
+                                <div class="flex justify-end mt-4">
+                                    <button onclick="openDonationModal(${f.case_id}, event)" 
+                                        class="gradient-bg text-white px-4 py-2 rounded-lg text-sm hover:opacity-90">
+                                        ${T('donateNow')}
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += '</div>';
+                contentArea.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading favorites:', error);
+                contentArea.innerHTML = `<p class="text-red-500">${T('errLoading')}</p>`;
+            }
+            
+            hideLoading();
+        }
+
+        // Load donations (for donors)
+        async function loadDonations() {
+            const contentArea = document.getElementById('contentArea');
+            
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/api/donations/my-donations`);
+                const donations = await response.json();
+                
+                let html = '<div class="space-y-4">';
+                
+                if (donations.length === 0) {
+                    html += `
+                        <div class="text-center py-12">
+                            <i class="fas fa-history text-6xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500">${T('noDonYet')}</p>
+                            <button onclick="loadContent('browse-cases')" class="mt-4 gradient-bg text-white px-6 py-2 rounded-lg">
+                                ${T('browseCases')}
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    let totalDonated = 0;
+                    donations.forEach(d => {
+                        totalDonated += d.amount;
+                        html += `
+                            <div class="border rounded-lg p-4 hover:shadow-lg transition">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h3 class="font-medium">${d.case_title || 'Unknown Case'}</h3>
+                                        <p class="text-sm text-gray-500">${new Date(d.created_at).toLocaleDateString()}</p>
+                                        <p class="text-xs text-gray-400">${T('transaction')}: ${d.transaction_id}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-semibold text-green-600 text-lg">$${d.amount}</p>
+                                        <span class="px-2 py-1 rounded text-xs ${d.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                                            ${d.status}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html = `
+                        <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-lg mb-6">
+                            <p class="text-sm opacity-90">${T('totalDonations')}</p>
+                            <p class="text-3xl font-bold">${totalDonated} ريال</p>
+                            <p class="text-xs opacity-75 mt-2">${donations.length} ${T('donationsMade')}</p>
+                        </div>
+                    ` + html;
+                }
+                
+                html += '</div>';
+                contentArea.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading donations:', error);
+                contentArea.innerHTML = `<p class="text-red-500">${T('errLoading')}</p>`;
+            }
+            
+            hideLoading();
+        }
+
+        // Load users (for admin)
+        async function loadUsers() {
+            const contentArea = document.getElementById('contentArea');
+            
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/api/admin/users`);
+                const users = await response.json();
+                
+                let html = `
+                    <div class="mb-4 flex justify-between items-center">
+                        <h2 class="text-xl font-semibold">${T('userMgmt')}</h2>
+                        <div class="flex gap-2">
+                            <input type="text" id="userSearch" placeholder="${T('searchUsers')}" 
+                                class="px-3 py-2 border rounded-lg text-sm">
+                            <button onclick="filterUsers()" class="gradient-bg text-white px-4 py-2 rounded-lg text-sm">
+                                ${T('search')}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${T('user')}</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${T('email')}</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${T('role')}</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${T('statusLbl')}</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${T('joined')}</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${T('actions')}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="usersTableBody">
+                `;
+                
+                if (users.length === 0) {
+                    html += `
+                        <tr>
+                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">${T('noUsersFound')}</td>
+                        </tr>
+                    `;
+                } else {
+                    users.forEach(u => {
+                        html += `
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                            ${u.full_name ? u.full_name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : 'U'}
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">${u.full_name}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">${u.email}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        ${u.role === 'admin' ? 'bg-purple-100 text-purple-800' : 
+                                          u.role === 'donor' ? 'bg-green-100 text-green-800' : 
+                                          u.role === 'beneficiary' ? 'bg-blue-100 text-blue-800' : 
+                                          'bg-gray-100 text-gray-800'}">
+                                        ${u.role}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        ${u.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                        ${u.is_active ? T('active') : T('inactive')}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    ${new Date(u.created_at).toLocaleDateString()}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button onclick="openUserEditModal('${u.id}', '${u.full_name}', '${u.email}', '${u.role}', ${u.is_active})" 
+                                        class="text-blue-600 hover:text-blue-900 mr-3">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button onclick="toggleUserStatus('${u.id}', ${!u.is_active})" 
+                                        class="text-${u.is_active ? 'red' : 'green'}-600 hover:text-${u.is_active ? 'red' : 'green'}-900">
+                                        <i class="fas ${u.is_active ? 'fa-ban' : 'fa-check-circle'}"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                contentArea.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading users:', error);
+                contentArea.innerHTML = `<p class="text-red-500">${T('errLoading')}</p>`;
+            }
+            
+            hideLoading();
+        }
+
+        // Load analytics (for admin)
+        async function loadAnalytics() {
+            const contentArea = document.getElementById('contentArea');
+            
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/api/admin/dashboard/stats`);
+                const stats = await response.json();
+                
+                let html = `
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-lg font-semibold mb-4">${T('casesByCat')}</h3>
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-lg font-semibold mb-4">${T('caseStatusDist')}</h3>
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-lg shadow lg:col-span-2">
+                            <h3 class="text-lg font-semibold mb-4">${T('monthlyTrends')}</h3>
+                            <canvas id="trendsChart"></canvas>
+                        </div>
+                        
+                        <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <p class="text-sm text-blue-600">${T('totalUsers')}</p>
+                                <p class="text-2xl font-bold">${stats.total_users || 0}</p>
+                            </div>
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <p class="text-sm text-green-600">${T('totalCases')}</p>
+                                <p class="text-2xl font-bold">${stats.total_cases || 0}</p>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg">
+                                <p class="text-sm text-yellow-600">${T('pendingCases')}</p>
+                                <p class="text-2xl font-bold">${stats.pending_cases || 0}</p>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg">
+                                <p class="text-sm text-purple-600">${T('totalDonations')}</p>
+                                <p class="text-2xl font-bold">${stats.total_donations || 0} ريال</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                contentArea.innerHTML = html;
+                
+                setTimeout(() => {
+                    const categoryCtx = document.getElementById('categoryChart')?.getContext('2d');
+                    if (categoryCtx && stats.cases_by_category) {
+                        new Chart(categoryCtx, {
+                            type: 'pie',
+                            data: {
+                                labels: stats.cases_by_category.map(c => c.category),
+                                datasets: [{
+                                    data: stats.cases_by_category.map(c => c.count),
+                                    backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6']
+                                }]
+                            }
+                        });
+                    }
+                    
+                    const statusCtx = document.getElementById('statusChart')?.getContext('2d');
+                    if (statusCtx) {
+                        new Chart(statusCtx, {
+                            type: 'doughnut',
+                            data: {
+                                labels: [T('pending'), T('approved'), T('rejected'), T('funded')],
+                                datasets: [{
+                                    data: [stats.pending_cases || 0, stats.approved_cases || 0, 0, 0],
+                                    backgroundColor: ['#eab308', '#22c55e', '#ef4444', '#3b82f6']
+                                }]
+                            }
+                        });
+                    }
+                    
+                    const trendsCtx = document.getElementById('trendsChart')?.getContext('2d');
+                    if (trendsCtx) {
+                        new Chart(trendsCtx, {
+                            type: 'line',
+                            data: {
+                                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                                datasets: [{
+                                    label: T('casesCreated'),
+                                    data: [12, 19, 15, 17, 14, 13],
+                                    borderColor: '#3b82f6',
+                                    tension: 0.1
+                                }, {
+                                    label: `${T('totalDonations')} (ريال)`,
+                                    data: [500, 700, 800, 600, 900, 750],
+                                    borderColor: '#22c55e',
+                                    tension: 0.1
+                                }]
+                            }
+                        });
+                    }
+                }, 100);
+                
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+                contentArea.innerHTML = `<p class="text-red-500">${T('errLoading')}</p>`;
+            }
+            
+            hideLoading();
+        }
+
+        // Load profile
+        async function loadProfile() {
+            const contentArea = document.getElementById('contentArea');
+            
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/api/auth/profile`);
+                const profile = await response.json();
+                
+                contentArea.innerHTML = `
+                    <div class="max-w-2xl mx-auto">
+                        <h2 class="text-xl font-semibold mb-6">${T('profileInfo')}</h2>
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <div class="space-y-4">
+                                <div class="flex items-center">
+                                    <div class="w-20 h-20 gradient-bg rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                                        ${profile.full_name ? profile.full_name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() : 'U'}
+                                    </div>
+                                    <div class="ml-4">
+                                        <h3 class="text-lg font-medium">${profile.full_name || 'N/A'}</h3>
+                                        <p class="text-gray-500">${profile.role || 'N/A'}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="border-t pt-4">
+                                    <dl class="grid grid-cols-1 gap-4">
+                                        <div>
+                                            <dt class="text-sm font-medium text-gray-500">${T('email')}</dt>
+                                            <dd class="text-sm text-gray-900">${profile.email || 'N/A'}</dd>
+                                        </div>
+                                        <div>
+                                            <dt class="text-sm font-medium text-gray-500">${T('phone')}</dt>
+                                            <dd class="text-sm text-gray-900">${profile.phone || T('notProvided')}</dd>
+                                        </div>
+                                        ${profile.income !== undefined ? `
+                                        <div>
+                                            <dt class="text-sm font-medium text-gray-500">${T('monthlyIncome')}</dt>
+                                            <dd class="text-sm text-gray-900">$${profile.income}</dd>
+                                        </div>
+                                        ` : ''}
+                                        ${profile.family_size !== undefined ? `
+                                        <div>
+                                            <dt class="text-sm font-medium text-gray-500">${T('familySize')}</dt>
+                                            <dd class="text-sm text-gray-900">${profile.family_size}</dd>
+                                        </div>
+                                        ` : ''}
+                                        ${profile.children_count !== undefined ? `
+                                        <div>
+                                            <dt class="text-sm font-medium text-gray-500">${T('children')}</dt>
+                                            <dd class="text-sm text-gray-900">${profile.children_count}</dd>
+                                        </div>
+                                        ` : ''}
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                contentArea.innerHTML = `<p class="text-red-500">${T('errBackend')}</p>`;
+            }
+            
+            hideLoading();
+        }
+
+        // User form submission
+        document.getElementById('userEditForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const userId = formData.get('user_id');
+            const data = {
+                full_name: formData.get('full_name'),
+                role: formData.get('role'),
+                is_active: formData.get('is_active') === 'true'
+            };
+            
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/api/admin/users/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    alert('User updated successfully');
+                    closeUserEditModal();
+                    loadContent('users');
+                } else {
+                    const result = await response.json();
+                    alert(result.error || 'Error updating user');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred');
+            }
+        });
+
+        // Case form submission
+        document.getElementById('caseForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {};
+            formData.forEach((value, key) => { data[key] = value; });
+            
+            if (data.amount_needed) data.amount_needed = parseFloat(data.amount_needed);
+            if (data.income) data.income = parseFloat(data.income);
+            if (data.family_size) data.family_size = parseInt(data.family_size);
+            if (data.children_count) data.children_count = parseInt(data.children_count);
+            
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/api/cases`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('Case created successfully! It will be reviewed by admin.');
+                    closeCaseModal();
+                    e.target.reset();
+                    loadContent('my-cases');
+                } else {
+                    alert(result.error || 'Error creating case');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Make sure backend is running.');
+            }
+        });
+
+        // Donation form submission
+        document.getElementById('donationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {};
+            formData.forEach((value, key) => { data[key] = value; });
+            data.amount = parseFloat(data.amount);
+            
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/api/donations`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('Donation successful! Thank you for your generosity.');
+                    closeDonationModal();
+                    e.target.reset();
+                } else {
+                    alert(result.error || 'Error processing donation');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Make sure backend is running.');
+            }
+        });
+
+        // Review case (admin)
+        async function reviewCase(caseId, action) {
+            if (!confirm(`Are you sure you want to ${action} this case?`)) return;
+            
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/api/admin/cases/${caseId}/review`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action })
+                });
+                
+                if (response.ok) {
+                    alert(`Case ${action} successful`);
+                    loadContent('pending-cases');
+                } else {
+                    const result = await response.json();
+                    alert(result.error || `Error ${action}ing case`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred');
+            }
+        }
+
+        // Toggle favorite
+        async function toggleFavorite(caseId, event) {
+            event.stopPropagation();
+            
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/api/donations/favorites/${caseId}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    alert('Added to favorites!');
+                    event.target.classList.remove('far');
+                    event.target.classList.add('fas', 'text-yellow-500');
+                } else {
+                    const result = await response.json();
+                    alert(result.error || 'Error adding to favorites');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred');
+            }
+        }
+
+        // Remove favorite
+        async function removeFavorite(caseId, event) {
+            event.stopPropagation();
+            
+            if (!confirm('Remove from favorites?')) return;
+            
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/api/donations/favorites/${caseId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    alert('Removed from favorites');
+                    loadContent('favorites');
+                } else {
+                    const result = await response.json();
+                    alert(result.error || 'Error removing from favorites');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred');
+            }
+        }
+
+        // Toggle user status
+        async function toggleUserStatus(userId, newStatus) {
+            if (!confirm(`Are you sure you want to ${newStatus ? 'activate' : 'deactivate'} this user?`)) return;
+            
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/api/admin/users/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_active: newStatus })
+                });
+                
+                if (response.ok) {
+                    alert(`User ${newStatus ? 'activated' : 'deactivated'} successfully`);
+                    loadContent('users');
+                } else {
+                    const result = await response.json();
+                    alert(result.error || 'Error updating user');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred');
+            }
+        }
+
+        // View case details
+        async function viewCaseDetails(caseId) {
+            try {
+                const response = await authenticatedFetch(`${API_BASE}/api/cases/${caseId}`);
+                const caseData = await response.json();
+                
+                window.currentCaseData = caseData;
+                
+                document.getElementById('caseDetailTitle').textContent = caseData.title;
+                
+                let html = `
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="font-medium text-gray-700">${T('description')}</h3>
+                            <p class="text-gray-600">${caseData.description}</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="text-sm text-gray-500">${T('amountNeeded')}</span>
+                                <p class="font-semibold">${caseData.amount_needed} ريال</p>
+                            </div>
+                            <div>
+                                <span class="text-sm text-gray-500">${T('amountRaised')}</span>
+                                <p class="font-semibold">${caseData.amount_raised} ريال</p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="text-sm text-gray-500">${T('category')}</span>
+                                <p class="font-semibold">${caseData.category}</p>
+                            </div>
+                            <div>
+                                <span class="text-sm text-gray-500">${T('statusLbl')}</span>
+                                <p class="font-semibold">${caseData.status}</p>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <span class="text-sm text-gray-500">${T('priorityScore')}</span>
+                            <p class="font-semibold">${caseData.priority_score}</p>
+                        </div>
+                        
+                        ${caseData.beneficiary ? `
+                            <div>
+                                <span class="text-sm text-gray-500">${T('beneficiary')}</span>
+                                <p class="font-semibold">${caseData.beneficiary.name}</p>
+                                ${caseData.beneficiary.location ? `<p class="text-sm text-gray-500">${caseData.beneficiary.location}</p>` : ''}
+                            </div>
+                        ` : ''}
+                        
+                        ${caseData.ai_analysis ? `
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h4 class="font-medium text-blue-800 mb-2">${T('aiAnalysis')}</h4>
+                                <div class="grid grid-cols-2 gap-2 text-sm">
+                                    <div>${T('urgency')}: ${(caseData.ai_analysis.urgency_score * 100).toFixed(0)}%</div>
+                                    <div>${T('medicalRisk')}: ${(caseData.ai_analysis.medical_risk_score * 100).toFixed(0)}%</div>
+                                    <div>${T('children')}: ${caseData.ai_analysis.children_present ? T('yes') : T('no')}</div>
+                                    <div>${T('confidence')}: ${(caseData.ai_analysis.confidence_score * 100).toFixed(0)}%</div>
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="mt-4 pt-4 border-t">
+                            <button onclick="loadCaseDocuments(${caseId}, '${caseData.title}')" 
+                                class="gradient-bg text-white px-4 py-2 rounded-lg hover:opacity-90 w-full">
+                                <i class="fas fa-file-alt mr-2"></i> ${T('viewCaseDocs')}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('caseDetailContent').innerHTML = html;
+                openCaseDetailsModal();
+                
+            } catch (error) {
+                console.error('Error loading case details:', error);
+                alert('Error loading case details');
+            }
+        }
+
+        // Filter users
+        function filterUsers() {
+            const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('#usersTableBody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Apply filters for browse cases
+        function applyFilters() {
+            const category = document.getElementById('categoryFilter').value;
+            const urgency = document.getElementById('urgencyFilter').value;
+            const search = document.getElementById('searchInput').value;
+            
+            let url = `${API_BASE}/api/cases/approved?`;
+            if (category) url += `category=${category}&`;
+            if (urgency) url += `urgency=${urgency}&`;
+            if (search) url += `search=${search}`;
+            
+            authenticatedFetch(url)
+                .then(response => response.json())
+                .then(cases => {
+                    const casesGrid = document.getElementById('casesGrid');
+                    if (casesGrid) {
+                        loadBrowseCases();
+                    }
+                })
+                .catch(error => console.error('Error filtering:', error));
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        });
+
+        // ===================== LANGUAGE SUPPORT =====================
+        let dashLang = localStorage.getItem('wisalLang') || 'en';
+
+        const dashTranslations = {
+            ar: {
+                dir: 'rtl', lang: 'ar', font: "'Tajawal', sans-serif",
+                brandName: 'وصال',
+                dashLangBtnText: 'English',
+                logoutText: 'تسجيل الخروج',
+                newCaseBtnText: 'حالة جديدة',
+                pageTitle: 'لوحة التحكم',
+                menuItems: {
+                    donor: [
+                        { icon: 'fa-home', text: 'لوحة التحكم', action: 'dashboard' },
+                        { icon: 'fa-heart', text: 'تصفح الحالات', action: 'browse-cases' },
+                        { icon: 'fa-star', text: 'المفضلة', action: 'favorites' },
+                        { icon: 'fa-history', text: 'سجل التبرعات', action: 'donations' },
+                        { icon: 'fa-user-circle', text: 'حسابي', page: 'CSS/profile.html' }
+                    ],
+                    beneficiary: [
+                        { icon: 'fa-home', text: 'لوحة التحكم', action: 'dashboard' },
+                        { icon: 'fa-file-alt', text: 'حالاتي', action: 'my-cases' },
+                        { icon: 'fa-plus-circle', text: 'حالة جديدة', action: 'new-case' },
+                        { icon: 'fa-upload', text: 'رفع المستندات', page: 'documents-upload.html' },
+                        { icon: 'fa-user-circle', text: 'حسابي', page: 'CSS/profile.html' }
+                    ],
+                    admin: [
+                        { icon: 'fa-home', text: 'لوحة التحكم', action: 'dashboard' },
+                        { icon: 'fa-users', text: 'إدارة المستخدمين', action: 'users' },
+                        { icon: 'fa-folder-open', text: 'الحالات المعلقة', action: 'pending-cases' },
+                        { icon: 'fa-check-circle', text: 'الحالات المعتمدة', action: 'approved-cases' },
+                        { icon: 'fa-chart-bar', text: 'الإحصائيات', action: 'analytics' },
+                        { icon: 'fa-user-circle', text: 'حسابي', page: 'CSS/profile.html' }
+                    ],
+                    charity: [
+                        { icon: 'fa-home', text: 'لوحة التحكم', action: 'dashboard' },
+                        { icon: 'fa-file-alt', text: 'حالاتي', action: 'my-cases' },
+                        { icon: 'fa-user-circle', text: 'حسابي', page: 'CSS/profile.html' }
+                    ]
+                },
+                modals: {
+                    editUserTitle: 'تعديل المستخدم', editUserNameLbl: 'الاسم الكامل', editUserEmailLbl: 'البريد الإلكتروني',
+                    editUserRoleLbl: 'الدور', editUserStatusLbl: 'الحالة', editUserCancelBtn: 'إلغاء', editUserSubmitBtn: 'تحديث المستخدم',
+                    roleOpt_donor: 'متبرع', roleOpt_beneficiary: 'مستفيد', roleOpt_charity: 'جمعية خيرية', roleOpt_admin: 'مشرف',
+                    statusOpt_active: 'نشط', statusOpt_inactive: 'غير نشط',
+                    caseTitle: 'إنشاء حالة مساعدة جديدة', caseTitleLbl: 'العنوان', caseDescLbl: 'الوصف',
+                    caseAmountLbl: 'المبلغ المطلوب (ريال)', caseCatLbl: 'الفئة', caseIncomeLbl: 'الدخل الشهري (ريال)',
+                    caseFamilyLbl: 'حجم الأسرة', caseChildrenLbl: 'عدد الأطفال',
+                    caseCancelBtn: 'إلغاء', caseSubmitBtn: 'تقديم الحالة',
+                    caseTitlePh: 'عنوان مختصر لحالتك', caseDescPh: 'صف وضعك بالتفصيل...',
+                    cat_medical: 'طبي', cat_rent: 'إيجار / سكن', cat_education: 'تعليم',
+                    cat_food: 'غذاء', cat_utilities: 'مرافق', cat_clothing: 'ملابس', cat_other: 'أخرى',
+                    donTitle: 'إجراء تبرع', donAmountLbl: 'المبلغ (ريال)', donMethodLbl: 'طريقة الدفع',
+                    donSubmitBtn: 'إتمام التبرع', donAmountPh: 'أدخل المبلغ',
+                    pay_card: 'بطاقة ائتمان / خصم', pay_paypal: 'باي بال', pay_bank: 'تحويل بنكي'
+                },
+                dyn: {
+                    welcomeDash:'مرحبًا بك في لوحة التحكم', browseDiffToday:'تصفح الحالات وأحدث فرقًا اليوم',
+                    browseCases:'تصفح الحالات', createTrackCases:'أنشئ حالة مساعدة جديدة أو تابع حالاتك الحالية',
+                    createNewCase:'إنشاء حالة جديدة', totalUsers:'إجمالي المستخدمين', totalCases:'إجمالي الحالات',
+                    pendingCases:'الحالات المعلقة', totalDonations:'إجمالي التبرعات', recentCases:'الحالات الأخيرة',
+                    statusLbl:'الحالة', noRecentCases:'لا توجد حالات حديثة',
+                    availableCases:'الحالات المتاحة', allCategories:'جميع الفئات',
+                    medical:'طبي', rent:'إيجار', education:'تعليم', food:'غذاء',
+                    allUrgency:'جميع مستويات الطوارئ', critical:'حرج', high:'عالي', medium:'متوسط', low:'منخفض',
+                    searchDots:'بحث...', apply:'تطبيق', noApprovedCases:'لا توجد حالات معتمدة متاحة',
+                    raised:'تم جمع', goal:'الهدف', donate:'تبرع',
+                    noCasesYet:'لا توجد حالات بعد', createFirstCase:'أنشئ حالتك الأولى',
+                    needed:'المطلوب', priority:'الأولوية', viewDocs:'عرض المستندات',
+                    caseMgmt:'إدارة الحالات', totalPending:'إجمالي المعلقة',
+                    awaitingReview:'بانتظار المراجعة', moreInfoNeeded:'مطلوب معلومات إضافية',
+                    filterCases:'تصفية الحالات', allStatus:'جميع الحالات',
+                    pendingReview:'بانتظار المراجعة',
+                    allPriorities:'جميع الأولويات', highPri:'عالي (80-100)',
+                    mediumPri:'متوسط (50-79)', lowPri:'منخفض (0-49)',
+                    dateRange:'النطاق الزمني', allTime:'كل الأوقات',
+                    today:'اليوم', thisWeek:'هذا الأسبوع', thisMonth:'هذا الشهر',
+                    searchCases:'بحث في الحالات...', resetFilters:'إعادة تعيين', applyFilters:'تطبيق الفلاتر',
+                    noMatchFilters:'لا توجد حالات تطابق الفلاتر',
+                    urgency:'الاستعجال', aiAnalysis:'تحليل الذكاء الاصطناعي',
+                    medicalRisk:'المخاطر الطبية', children:'أطفال', category:'الفئة',
+                    yes:'نعم', no:'لا', documents:'المستندات', details:'التفاصيل',
+                    approve:'موافقة', reject:'رفض', requestInfo:'طلب معلومات',
+                    yesterday:'أمس', daysAgo:'أيام مضت',
+                    noApprovedAdmin:'لا توجد حالات معتمدة',
+                    noFavYet:'لا توجد مفضلات بعد', donateNow:'تبرع الآن',
+                    noDonYet:'لا توجد تبرعات بعد', donationsMade:'تبرعات تمت', transaction:'المعاملة',
+                    userMgmt:'إدارة المستخدمين', searchUsers:'بحث المستخدمين...',
+                    user:'المستخدم', email:'البريد الإلكتروني', role:'الدور',
+                    joined:'تاريخ الانضمام', actions:'الإجراءات',
+                    active:'نشط', inactive:'غير نشط', noUsersFound:'لم يتم العثور على مستخدمين',
+                    casesByCat:'الحالات حسب الفئة', caseStatusDist:'توزيع حالة الحالات',
+                    monthlyTrends:'الاتجاهات الشهرية',
+                    pending:'معلقة', approved:'معتمدة', rejected:'مرفوضة', funded:'ممولة',
+                    casesCreated:'الحالات المنشأة',
+                    profileInfo:'معلومات الملف الشخصي', phone:'الهاتف',
+                    notProvided:'غير متوفر', monthlyIncome:'الدخل الشهري', familySize:'حجم الأسرة',
+                    allDocs:'جميع المستندات', noDocsFound:'لم يتم العثور على مستندات',
+                    verified:'موثق', caseLbl:'الحالة', uploaded:'تم الرفع', byLbl:'بواسطة', unknown:'غير معروف',
+                    description:'الوصف', amountNeeded:'المبلغ المطلوب', amountRaised:'المبلغ المجموع',
+                    priorityScore:'درجة الأولوية', beneficiary:'المستفيد', confidence:'الثقة',
+                    viewCaseDocs:'عرض مستندات الحالة',
+                    errLoading:'خطأ في التحميل', errBackend:'خطأ في التحميل. تأكد من تشغيل الخادم.',
+                    welcomeBack:'مرحبًا بعودتك', search:'بحث',
+                    reqMoreInfo:'طلب معلومات إضافية', whatInfoNeeded:'ما هي المعلومات الإضافية المطلوبة؟',
+                    reqDocs:'طلب مستندات', idProof:'إثبات الهوية', incomeProof:'إثبات الدخل',
+                    medicalReport:'تقرير طبي', otherSpecify:'أخرى (حدد في الملاحظات)',
+                    cancel:'إلغاء', sendRequest:'إرسال الطلب'
+                }
+            },
+            en: {
+                dir: 'ltr', lang: 'en', font: "'Inter', sans-serif",
+                brandName: 'Wisal',
+                dashLangBtnText: 'العربية',
+                logoutText: 'Logout',
+                newCaseBtnText: 'New Case',
+                pageTitle: 'Dashboard',
+                menuItems: {
+                    donor: [
+                        { icon: 'fa-home', text: 'Dashboard', action: 'dashboard' },
+                        { icon: 'fa-heart', text: 'Browse Cases', action: 'browse-cases' },
+                        { icon: 'fa-star', text: 'My Favorites', action: 'favorites' },
+                        { icon: 'fa-history', text: 'Donation History', action: 'donations' },
+                        { icon: 'fa-user-circle', text: 'My Profile', page: 'CSS/profile.html' }
+                    ],
+                    beneficiary: [
+                        { icon: 'fa-home', text: 'Dashboard', action: 'dashboard' },
+                        { icon: 'fa-file-alt', text: 'My Cases', action: 'my-cases' },
+                        { icon: 'fa-plus-circle', text: 'New Case', action: 'new-case' },
+                        { icon: 'fa-upload', text: 'Upload Documents', page: 'documents-upload.html' },
+                        { icon: 'fa-user-circle', text: 'My Profile', page: 'CSS/profile.html' }
+                    ],
+                    admin: [
+                        { icon: 'fa-home', text: 'Dashboard', action: 'dashboard' },
+                        { icon: 'fa-users', text: 'Manage Users', action: 'users' },
+                        { icon: 'fa-folder-open', text: 'Pending Cases', action: 'pending-cases' },
+                        { icon: 'fa-check-circle', text: 'Approved Cases', action: 'approved-cases' },
+                        { icon: 'fa-chart-bar', text: 'Analytics', action: 'analytics' },
+                        { icon: 'fa-user-circle', text: 'My Profile', page: 'CSS/profile.html' }
+                    ],
+                    charity: [
+                        { icon: 'fa-home', text: 'Dashboard', action: 'dashboard' },
+                        { icon: 'fa-file-alt', text: 'My Cases', action: 'my-cases' },
+                        { icon: 'fa-user-circle', text: 'My Profile', page: 'CSS/profile.html' }
+                    ]
+                },
+                modals: {
+                    editUserTitle: 'Edit User', editUserNameLbl: 'Full Name', editUserEmailLbl: 'Email',
+                    editUserRoleLbl: 'Role', editUserStatusLbl: 'Status', editUserCancelBtn: 'Cancel', editUserSubmitBtn: 'Update User',
+                    roleOpt_donor: 'Donor', roleOpt_beneficiary: 'Beneficiary', roleOpt_charity: 'Charity', roleOpt_admin: 'Admin',
+                    statusOpt_active: 'Active', statusOpt_inactive: 'Inactive',
+                    caseTitle: 'Create New Help Case', caseTitleLbl: 'Title', caseDescLbl: 'Description',
+                    caseAmountLbl: 'Amount Needed (ريال)', caseCatLbl: 'Category', caseIncomeLbl: 'Monthly Income (ريال)',
+                    caseFamilyLbl: 'Family Size', caseChildrenLbl: 'Number of Children',
+                    caseCancelBtn: 'Cancel', caseSubmitBtn: 'Submit Case',
+                    caseTitlePh: 'Brief title for your case', caseDescPh: 'Describe your situation in detail...',
+                    cat_medical: 'Medical', cat_rent: 'Rent/Housing', cat_education: 'Education',
+                    cat_food: 'Food', cat_utilities: 'Utilities', cat_clothing: 'Clothing', cat_other: 'Other',
+                    donTitle: 'Make a Donation', donAmountLbl: 'Amount (ريال)', donMethodLbl: 'Payment Method',
+                    donSubmitBtn: 'Complete Donation', donAmountPh: 'Enter amount',
+                    pay_card: 'Credit/Debit Card', pay_paypal: 'PayPal', pay_bank: 'Bank Transfer'
+                },
+                dyn: {
+                    welcomeDash:'Welcome to Your Dashboard', browseDiffToday:'Browse cases and make a difference today',
+                    browseCases:'Browse Cases', createTrackCases:'Create a new help case or track existing ones',
+                    createNewCase:'Create New Case', totalUsers:'Total Users', totalCases:'Total Cases',
+                    pendingCases:'Pending Cases', totalDonations:'Total Donations', recentCases:'Recent Cases',
+                    statusLbl:'Status', noRecentCases:'No recent cases',
+                    availableCases:'Available Cases', allCategories:'All Categories',
+                    medical:'Medical', rent:'Rent', education:'Education', food:'Food',
+                    allUrgency:'All Urgency', critical:'Critical', high:'High', medium:'Medium', low:'Low',
+                    searchDots:'Search...', apply:'Apply', noApprovedCases:'No approved cases available',
+                    raised:'Raised', goal:'Goal', donate:'Donate',
+                    noCasesYet:'No cases yet', createFirstCase:'Create Your First Case',
+                    needed:'Needed', priority:'Priority', viewDocs:'View Documents',
+                    caseMgmt:'Case Management', totalPending:'Total Pending',
+                    awaitingReview:'Awaiting Review', moreInfoNeeded:'More Info Needed',
+                    filterCases:'Filter Cases', allStatus:'All Status',
+                    pendingReview:'Pending Review',
+                    allPriorities:'All Priorities', highPri:'High (80-100)',
+                    mediumPri:'Medium (50-79)', lowPri:'Low (0-49)',
+                    dateRange:'Date Range', allTime:'All Time',
+                    today:'Today', thisWeek:'This Week', thisMonth:'This Month',
+                    searchCases:'Search cases...', resetFilters:'Reset Filters', applyFilters:'Apply Filters',
+                    noMatchFilters:'No cases match your filters',
+                    urgency:'Urgency', aiAnalysis:'AI Analysis',
+                    medicalRisk:'Medical Risk', children:'Children', category:'Category',
+                    yes:'Yes', no:'No', documents:'Documents', details:'Details',
+                    approve:'Approve', reject:'Reject', requestInfo:'Request Info',
+                    yesterday:'Yesterday', daysAgo:'days ago',
+                    noApprovedAdmin:'No approved cases',
+                    noFavYet:'No favorites yet', donateNow:'Donate Now',
+                    noDonYet:'No donations yet', donationsMade:'donations made', transaction:'Transaction',
+                    userMgmt:'User Management', searchUsers:'Search users...',
+                    user:'User', email:'Email', role:'Role',
+                    joined:'Joined', actions:'Actions',
+                    active:'Active', inactive:'Inactive', noUsersFound:'No users found',
+                    casesByCat:'Cases by Category', caseStatusDist:'Case Status Distribution',
+                    monthlyTrends:'Monthly Trends',
+                    pending:'Pending', approved:'Approved', rejected:'Rejected', funded:'Funded',
+                    casesCreated:'Cases Created',
+                    profileInfo:'Profile Information', phone:'Phone',
+                    notProvided:'Not provided', monthlyIncome:'Monthly Income', familySize:'Family Size',
+                    allDocs:'All Documents', noDocsFound:'No documents found',
+                    verified:'Verified', caseLbl:'Case', uploaded:'Uploaded', byLbl:'By', unknown:'Unknown',
+                    description:'Description', amountNeeded:'Amount Needed', amountRaised:'Amount Raised',
+                    priorityScore:'Priority Score', beneficiary:'Beneficiary', confidence:'Confidence',
+                    viewCaseDocs:'View Case Documents',
+                    errLoading:'Error loading', errBackend:'Error loading. Make sure backend is running.',
+                    welcomeBack:'Welcome back', search:'Search',
+                    reqMoreInfo:'Request More Information', whatInfoNeeded:'What additional information do you need?',
+                    reqDocs:'Request documents', idProof:'ID Proof', incomeProof:'Income Proof',
+                    medicalReport:'Medical Report', otherSpecify:'Other (specify in notes)',
+                    cancel:'Cancel', sendRequest:'Send Request'
+                }
+            }
+        };
+
+        function T(k) { return (dashTranslations[dashLang] && dashTranslations[dashLang].dyn && dashTranslations[dashLang].dyn[k]) || k; }
+
+        function applyDashLang(lang) {
+            dashLang = lang;
+            const d = dashTranslations[lang];
+            document.documentElement.dir = d.dir;
+            document.documentElement.lang = d.lang;
+            document.body.style.fontFamily = d.font;
+
+            const ids = ['brandName','dashLangBtnText','logoutText','newCaseBtnText'];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = d[id];
+            });
+
+            // Translate modals
+            if (d.modals) {
+                const m = d.modals;
+                const mIds = {
+                    'm_editUserTitle': m.editUserTitle, 'm_editUserNameLbl': m.editUserNameLbl,
+                    'm_editUserEmailLbl': m.editUserEmailLbl, 'm_editUserRoleLbl': m.editUserRoleLbl,
+                    'm_editUserStatusLbl': m.editUserStatusLbl, 'm_editUserCancelBtn': m.editUserCancelBtn,
+                    'm_editUserSubmitBtn': m.editUserSubmitBtn,
+                    'm_roleOpt_donor': m.roleOpt_donor, 'm_roleOpt_beneficiary': m.roleOpt_beneficiary,
+                    'm_roleOpt_charity': m.roleOpt_charity, 'm_roleOpt_admin': m.roleOpt_admin,
+                    'm_statusOpt_active': m.statusOpt_active, 'm_statusOpt_inactive': m.statusOpt_inactive,
+                    'm_caseTitle': m.caseTitle, 'm_caseTitleLbl': m.caseTitleLbl,
+                    'm_caseDescLbl': m.caseDescLbl, 'm_caseAmountLbl': m.caseAmountLbl,
+                    'm_caseCatLbl': m.caseCatLbl, 'm_caseIncomeLbl': m.caseIncomeLbl,
+                    'm_caseFamilyLbl': m.caseFamilyLbl, 'm_caseChildrenLbl': m.caseChildrenLbl,
+                    'm_caseCancelBtn': m.caseCancelBtn, 'm_caseSubmitBtn': m.caseSubmitBtn,
+                    'm_cat_medical': m.cat_medical, 'm_cat_rent': m.cat_rent,
+                    'm_cat_education': m.cat_education, 'm_cat_food': m.cat_food,
+                    'm_cat_utilities': m.cat_utilities, 'm_cat_clothing': m.cat_clothing, 'm_cat_other': m.cat_other,
+                    'm_donTitle': m.donTitle, 'm_donAmountLbl': m.donAmountLbl,
+                    'm_donMethodLbl': m.donMethodLbl, 'm_donSubmitBtn': m.donSubmitBtn,
+                    'm_pay_card': m.pay_card, 'm_pay_paypal': m.pay_paypal, 'm_pay_bank': m.pay_bank
+                };
+                Object.entries(mIds).forEach(([id, text]) => {
+                    const el = document.getElementById(id); if (el) el.textContent = text;
+                });
+                // Update placeholders
+                const titleInp = document.getElementById('caseFormTitle');
+                const descInp = document.getElementById('caseFormDesc');
+                const donInp = document.getElementById('donAmountInput');
+                if (titleInp) titleInp.placeholder = m.caseTitlePh;
+                if (descInp) descInp.placeholder = m.caseDescPh;
+                if (donInp) donInp.placeholder = m.donAmountPh;
+            }
+
+            // Update page title if on dashboard
+            const pt = document.getElementById('pageTitle');
+            if (pt && (pt.textContent === 'لوحة التحكم' || pt.textContent === 'Dashboard')) {
+                pt.textContent = d.pageTitle;
+            }
+
+            // Update welcome banner
+            const bw = document.getElementById('bannerWelcome');
+            if (bw) {
+                const uname = document.getElementById('bannerUserName')?.textContent || '';
+                bw.innerHTML = `${d.dyn.welcomeBack} &mdash; <span id="bannerUserName" style="font-weight:600;">${uname}</span>`;
+            }
+
+            // Re-render sidebar menu with translated items
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                const role = user.role;
+                const sidebarNav = document.getElementById('sidebarNav');
+                if (sidebarNav && d.menuItems[role]) {
+                    sidebarNav.innerHTML = '';
+                    d.menuItems[role].forEach(item => {
+                        const btn = document.createElement('button');
+                        btn.className = 'sidebar-item w-full flex items-center space-x-3 p-3 rounded-lg text-gray-700 mb-1 hover:bg-gray-100';
+                        btn.innerHTML = `<i class="fas ${item.icon} w-5"></i><span class="flex-1 text-${lang === 'ar' ? 'right' : 'left'}">${item.text}</span>`;
+                        if (item.page) {
+                            btn.onclick = () => window.location.href = item.page;
+                        } else {
+                            btn.onclick = () => loadContent(item.action);
+                        }
+                        sidebarNav.appendChild(btn);
+                    });
+                }
+            }
+
+            localStorage.setItem('wisalLang', lang);
+        }
+
+        // Track current content action for re-rendering on language switch
+        let currentAction = 'dashboard';
+        const origLoadContent = loadContent;
+        loadContent = async function(action) {
+            currentAction = action;
+            return origLoadContent(action);
+        };
+
+        function toggleDashLang() {
+            applyDashLang(dashLang === 'ar' ? 'en' : 'ar');
+            // Re-render current content with new language
+            if (currentAction) loadContent(currentAction);
+        }
+
+        // Apply saved language first, then load the initial dashboard content.
+        setTimeout(async () => {
+            applyDashLang(dashLang);
+            await loadContent('dashboard');
+        }, 100);
+    </script>
+</body>
+</html>

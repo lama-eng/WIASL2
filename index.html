@@ -1,0 +1,1642 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wisal – Smart Donation Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Tajawal", sans-serif;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      body.lang-en {
+        font-family: "Inter", sans-serif;
+      }
+
+      .hero-bg {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background:
+          linear-gradient(
+            135deg,
+            rgba(26, 26, 46, 0.87) 0%,
+            rgba(22, 33, 62, 0.83) 40%,
+            rgba(15, 52, 96, 0.79) 70%,
+            rgba(83, 52, 131, 0.87) 100%
+          ),
+          url("https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&w=1920&q=80")
+            center/cover no-repeat;
+        overflow: hidden;
+      }
+      .shape {
+        position: absolute;
+        border-radius: 50%;
+        animation: floatShape 8s ease-in-out infinite;
+      }
+      .shape-1 {
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(
+          circle,
+          rgba(167, 139, 250, 0.12),
+          transparent
+        );
+        top: -200px;
+        left: -100px;
+        animation-delay: 0s;
+      }
+      .shape-2 {
+        width: 450px;
+        height: 450px;
+        background: radial-gradient(
+          circle,
+          rgba(96, 165, 250, 0.12),
+          transparent
+        );
+        bottom: -120px;
+        right: -60px;
+        animation-delay: 2s;
+      }
+      .shape-3 {
+        width: 280px;
+        height: 280px;
+        background: radial-gradient(
+          circle,
+          rgba(244, 114, 182, 0.09),
+          transparent
+        );
+        top: 40%;
+        right: 22%;
+        animation-delay: 4s;
+      }
+      .shape-4 {
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(
+          circle,
+          rgba(52, 211, 153, 0.09),
+          transparent
+        );
+        bottom: 20%;
+        left: 12%;
+        animation-delay: 1s;
+      }
+      @keyframes floatShape {
+        0%,
+        100% {
+          transform: translateY(0) scale(1);
+        }
+        50% {
+          transform: translateY(-28px) scale(1.04);
+        }
+      }
+
+      .particle {
+        position: absolute;
+        width: 3px;
+        height: 3px;
+        background: white;
+        border-radius: 50%;
+        opacity: 0;
+        animation: twinkle 4s ease-in-out infinite;
+      }
+      @keyframes twinkle {
+        0%,
+        100% {
+          opacity: 0;
+          transform: scale(0);
+        }
+        50% {
+          opacity: 0.5;
+          transform: scale(1);
+        }
+      }
+
+      /* Hero panel - right in RTL, left in LTR */
+      .hero-panel {
+        position: fixed;
+        right: 0;
+        top: 0;
+        width: 55%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+        padding: 40px 60px;
+        text-align: center;
+      }
+      html[dir="ltr"] .hero-panel {
+        left: 0;
+        right: auto;
+      }
+
+      .hero-logo-ring {
+        width: 110px;
+        height: 110px;
+        background: linear-gradient(135deg, #a78bfa, #60a5fa);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 28px;
+        box-shadow: 0 0 60px rgba(167, 139, 250, 0.45);
+        animation: pulseGlow 3s ease-in-out infinite;
+      }
+      @keyframes pulseGlow {
+        0%,
+        100% {
+          box-shadow: 0 0 40px rgba(167, 139, 250, 0.3);
+        }
+        50% {
+          box-shadow: 0 0 90px rgba(167, 139, 250, 0.65);
+        }
+      }
+
+      .hero-main-title {
+        font-size: 80px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #ffffff 20%, #c4b5fd 60%, #93c5fd);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1;
+        margin-bottom: 18px;
+        letter-spacing: -2px;
+      }
+
+      .hero-desc {
+        font-size: 19px;
+        color: rgba(255, 255, 255, 0.65);
+        line-height: 1.8;
+        margin-bottom: 48px;
+        max-width: 380px;
+      }
+
+      .hero-stats {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 20px;
+        padding: 20px 32px;
+        backdrop-filter: blur(10px);
+      }
+      .stat-divider {
+        width: 1px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.15);
+        margin: 0 28px;
+      }
+      .stat-num {
+        font-size: 30px;
+        font-weight: 800;
+        color: #c4b5fd;
+        display: block;
+      }
+      .stat-lbl {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.55);
+        margin-top: 4px;
+        display: block;
+      }
+
+      /* Login panel - left in RTL, right in LTR */
+      .login-panel {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 45%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+        padding: 20px;
+        overflow-y: auto;
+      }
+      html[dir="ltr"] .login-panel {
+        right: 0;
+        left: auto;
+      }
+
+      .login-card {
+        background: rgba(255, 255, 255, 0.97);
+        backdrop-filter: blur(20px);
+        border-radius: 28px;
+        padding: 38px 36px;
+        width: 100%;
+        max-width: 430px;
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.35);
+      }
+
+      .gradient-bg {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+
+      .tab-wrap {
+        display: flex;
+        background: #f3f4f6;
+        border-radius: 14px;
+        padding: 5px;
+        margin-bottom: 24px;
+        gap: 4px;
+      }
+      .tab-btn {
+        flex: 1;
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+      }
+      .tab-btn.active {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+      }
+      .tab-btn.inactive {
+        background: transparent;
+        color: #9ca3af;
+      }
+
+      .field-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 6px;
+      }
+      .field-wrap {
+        position: relative;
+        margin-bottom: 14px;
+      }
+      .field-icon {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        pointer-events: none;
+        font-size: 14px;
+      }
+      html[dir="rtl"] .field-icon {
+        right: 13px;
+      }
+      html[dir="ltr"] .field-icon {
+        left: 13px;
+      }
+
+      .field-input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 14px;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+        background: white;
+        color: #111;
+      }
+      html[dir="rtl"] .field-input {
+        padding-right: 38px;
+      }
+      html[dir="ltr"] .field-input {
+        padding-left: 38px;
+      }
+
+      .field-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.13);
+      }
+
+      .submit-btn {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .submit-btn:hover {
+        opacity: 0.9;
+      }
+
+      .demo-box {
+        margin-top: 18px;
+        background: #faf5ff;
+        border: 1px solid #e9d5ff;
+        border-radius: 14px;
+        padding: 12px 14px;
+      }
+      .demo-title-row {
+        font-size: 12px;
+        font-weight: 700;
+        color: #7c3aed;
+        margin-bottom: 7px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .demo-row {
+        font-size: 11.5px;
+        color: #4b5563;
+        margin-bottom: 3px;
+      }
+      .demo-row span {
+        font-weight: 700;
+      }
+
+      .divider-line {
+        position: fixed;
+        top: 8%;
+        height: 84%;
+        width: 1px;
+        background: linear-gradient(
+          to bottom,
+          transparent,
+          rgba(255, 255, 255, 0.13),
+          transparent
+        );
+        z-index: 1;
+      }
+      html[dir="rtl"] .divider-line {
+        left: 45%;
+      }
+      html[dir="ltr"] .divider-line {
+        right: 45%;
+      }
+
+      .lang-btn {
+        position: fixed;
+        top: 18px;
+        z-index: 100;
+        background: rgba(255, 255, 255, 0.13);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: white;
+        padding: 7px 16px;
+        border-radius: 50px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        transition: background 0.25s;
+      }
+      html[dir="rtl"] .lang-btn {
+        left: 18px;
+      }
+      html[dir="ltr"] .lang-btn {
+        right: 18px;
+      }
+      .lang-btn:hover {
+        background: rgba(255, 255, 255, 0.22);
+      }
+
+      @media (max-width: 860px) {
+        .hero-panel,
+        .divider-line {
+          display: none;
+        }
+        .login-panel {
+          width: 100%;
+          position: relative;
+          min-height: 100vh;
+        }
+        body {
+          overflow: auto;
+        }
+      }
+
+      /* ─── Face Verification / Enrollment Modal ──────────────────────── */
+      .face-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(0, 0, 0, 0.82);
+        backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .face-modal-overlay.hidden {
+        display: none;
+      }
+      .face-modal-card {
+        background: white;
+        border-radius: 28px;
+        padding: 36px 32px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+        text-align: center;
+      }
+      .face-modal-title {
+        font-size: 20px;
+        font-weight: 800;
+        color: #111;
+        margin-bottom: 4px;
+      }
+      .face-modal-sub {
+        font-size: 13px;
+        color: #9ca3af;
+        margin-bottom: 22px;
+      }
+      .face-ring {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        border: 3px solid #e5e7eb;
+        background: #f9fafb;
+        overflow: hidden;
+        margin: 0 auto 16px;
+        position: relative;
+        transition:
+          border-color 0.3s,
+          box-shadow 0.3s;
+      }
+      .face-ring.live {
+        border-color: #10b981;
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.15);
+      }
+      .face-ring video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: scaleX(-1);
+        display: none;
+      }
+      .face-ring-ph {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: #9ca3af;
+        font-size: 12px;
+      }
+      .face-ring-ph .ph-ico {
+        font-size: 42px;
+        opacity: 0.28;
+      }
+      .face-countdown {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.72);
+        border-radius: 50%;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 60px;
+        font-weight: 800;
+        color: white;
+      }
+      .face-countdown.show {
+        display: flex;
+      }
+      .face-preview-ring {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin: 0 auto 16px;
+        border: 3px solid #10b981;
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.15);
+        display: none;
+      }
+      .face-preview-ring img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .face-hint {
+        font-size: 13px;
+        color: #6b7280;
+        min-height: 18px;
+        margin-bottom: 14px;
+      }
+      .face-btn-row {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+      .face-btn {
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        font-family: inherit;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: opacity 0.2s;
+      }
+      .face-btn:hover:not(:disabled) {
+        opacity: 0.88;
+      }
+      .face-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .face-btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        min-width: 130px;
+        justify-content: center;
+      }
+      .face-btn-outline {
+        background: #f3f4f6;
+        color: #374151;
+      }
+      .face-btn-success {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        min-width: 130px;
+        justify-content: center;
+      }
+      .face-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: faceSpin 0.7s linear infinite;
+        display: none;
+      }
+      @keyframes faceSpin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .face-errmsg {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #b91c1c;
+        border-radius: 10px;
+        padding: 9px 12px;
+        font-size: 12px;
+        margin-bottom: 12px;
+        display: none;
+      }
+      .face-errmsg.show {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Background -->
+    <div class="hero-bg">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+      <div class="shape shape-4"></div>
+      <div
+        class="particle"
+        style="top: 12%; left: 22%; animation-delay: 0s"
+      ></div>
+      <div
+        class="particle"
+        style="top: 30%; left: 58%; animation-delay: 1.2s"
+      ></div>
+      <div
+        class="particle"
+        style="top: 62%; left: 33%; animation-delay: 2.4s"
+      ></div>
+      <div
+        class="particle"
+        style="top: 78%; left: 68%; animation-delay: 0.6s"
+      ></div>
+      <div
+        class="particle"
+        style="top: 18%; left: 78%; animation-delay: 1.8s"
+      ></div>
+      <div
+        class="particle"
+        style="top: 48%; left: 12%; animation-delay: 3.1s"
+      ></div>
+      <div
+        class="particle"
+        style="top: 88%; left: 48%; animation-delay: 2.8s"
+      ></div>
+      <div
+        class="particle"
+        style="top: 55%; left: 85%; animation-delay: 0.3s"
+      ></div>
+    </div>
+
+    <!-- Language Button -->
+    <button class="lang-btn" onclick="toggleLanguage()">
+      <i class="fas fa-globe"></i>
+      <span id="langBtnText">العربية</span>
+    </button>
+
+    <!-- Panel Divider -->
+    <div class="divider-line"></div>
+
+    <!-- Hero Panel -->
+    <div class="hero-panel">
+      <div class="hero-logo-ring">
+        <i
+          class="fas fa-hand-holding-heart text-white"
+          style="font-size: 46px"
+        ></i>
+      </div>
+      <div class="hero-main-title" id="heroTitle">Wisal</div>
+      <p class="hero-desc" id="heroSubtitle">
+        A smart donation platform<br />connecting donors with those in need
+      </p>
+      <div class="hero-stats">
+        <div class="text-center">
+          <span class="stat-num">500+</span>
+          <span class="stat-lbl" id="statLabel1">Cases Helped</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="text-center">
+          <span class="stat-num">1,200+</span>
+          <span class="stat-lbl" id="statLabel2">Donors</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="text-center">
+          <span class="stat-num">98%</span>
+          <span class="stat-lbl" id="statLabel3">Trust Rate</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login Panel -->
+    <div class="login-panel">
+      <div class="login-card">
+        <!-- Card top -->
+        <div style="text-align: center; margin-bottom: 22px">
+          <div
+            style="display: flex; justify-content: center; margin-bottom: 12px"
+          >
+            <div
+              class="gradient-bg"
+              style="
+                padding: 12px 14px;
+                border-radius: 16px;
+                display: inline-flex;
+              "
+            >
+              <i
+                class="fas fa-hand-holding-heart text-white"
+                style="font-size: 22px"
+              ></i>
+            </div>
+          </div>
+          <h2
+            style="
+              font-size: 22px;
+              font-weight: 800;
+              color: #111;
+              margin: 0 0 4px;
+            "
+            id="cardTitle"
+          >
+            Wisal Donations
+          </h2>
+          <p
+            style="font-size: 13px; color: #9ca3af; margin: 0"
+            id="cardSubtitle"
+          >
+            Welcome back, sign in to continue
+          </p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-wrap">
+          <button
+            class="tab-btn active"
+            id="loginTab"
+            onclick="switchTab('login')"
+          >
+            <i class="fas fa-sign-in-alt"></i>
+            <span id="loginTabText">Sign In</span>
+          </button>
+          <button
+            class="tab-btn inactive"
+            id="registerTab"
+            onclick="switchTab('register')"
+          >
+            <i class="fas fa-user-plus"></i>
+            <span id="registerTabText">Register</span>
+          </button>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <div id="loginForm">
+          <div class="field-wrap">
+            <label class="field-label" id="emailLabel">Email Address</label>
+            <div style="position: relative">
+              <i class="fas fa-envelope field-icon"></i>
+              <input
+                type="email"
+                id="loginEmail"
+                class="field-input"
+                placeholder="you@example.com"
+              />
+            </div>
+          </div>
+          <div class="field-wrap">
+            <label class="field-label" id="passwordLabel">Password</label>
+            <div style="position: relative">
+              <i class="fas fa-lock field-icon"></i>
+              <input
+                type="password"
+                id="loginPassword"
+                class="field-input"
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
+          <button class="submit-btn" onclick="doLogin()">
+            <i class="fas fa-sign-in-alt"></i>
+            <span id="loginBtnText">Sign In</span>
+          </button>
+
+          <div class="demo-box">
+            <div class="demo-title-row">
+              <i class="fas fa-info-circle"></i>
+              <span id="demoTitle">Demo Accounts</span>
+            </div>
+            <div class="demo-row">
+              <span id="demoUser">User:</span> ahmend@gmail.com / 123456
+            </div>
+            <div class="demo-row">
+              <span id="demoAdmin">Admin:</span> admin@wisal.com / Admin@2026
+            </div>
+            <div class="demo-row">
+              <span id="demoDonor">Donor:</span> doner11@gmail.com / 123456
+            </div>
+          </div>
+        </div>
+
+        <!-- REGISTER FORM -->
+        <div id="registerForm" class="hidden">
+          <div class="field-wrap">
+            <label class="field-label" id="fullNameLabel">الاسم الكامل</label>
+            <div style="position: relative">
+              <i class="fas fa-user field-icon"></i>
+              <input
+                type="text"
+                id="regName"
+                class="field-input"
+                id="fullNamePH"
+              />
+            </div>
+          </div>
+          <div class="field-wrap">
+            <label class="field-label" id="emailLabel2"
+              >البريد الإلكتروني</label
+            >
+            <div style="position: relative">
+              <i class="fas fa-envelope field-icon"></i>
+              <input
+                type="email"
+                id="regEmail"
+                class="field-input"
+                placeholder="you@example.com"
+              />
+            </div>
+          </div>
+          <div class="field-wrap">
+            <label class="field-label" id="phoneLabel">رقم الجوال</label>
+            <div style="position: relative">
+              <i class="fas fa-phone field-icon"></i>
+              <input
+                type="tel"
+                id="regPhone"
+                class="field-input"
+                placeholder="+966..."
+              />
+            </div>
+          </div>
+          <div class="field-wrap">
+            <label class="field-label" id="passwordLabel2">كلمة المرور</label>
+            <div style="position: relative">
+              <i class="fas fa-lock field-icon"></i>
+              <input
+                type="password"
+                id="regPassword"
+                class="field-input"
+                placeholder="••••••••"
+              />
+            </div>
+            <p
+              style="font-size: 11px; color: #9ca3af; margin: 4px 0 0"
+              id="passHint"
+            >
+              6 أحرف على الأقل
+            </p>
+          </div>
+          <div class="field-wrap">
+            <label class="field-label" id="roleLabel">أريد أن</label>
+            <select
+              id="regRole"
+              class="field-input"
+              style="padding-right: 14px; padding-left: 14px"
+            >
+              <option value="" id="roleOpt0">اختر دورك</option>
+              <option value="donor" id="roleOpt1">أتبرع للحالات</option>
+              <option value="beneficiary" id="roleOpt2">أطلب المساعدة</option>
+             
+            </select>
+          </div>
+
+          <!-- Beneficiary extra fields -->
+          <div id="beneficiaryFields" class="hidden">
+            <div class="field-wrap">
+              <label class="field-label" id="incomeLabel"
+                >الدخل الشهري (ريال)</label
+              >
+              <input
+                type="number"
+                id="regIncome"
+                class="field-input"
+                style="padding-right: 14px; padding-left: 14px"
+                placeholder="0"
+              />
+            </div>
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
+            >
+              <div class="field-wrap">
+                <label class="field-label" id="famLabel">حجم الأسرة</label>
+                <input
+                  type="number"
+                  id="regFamily"
+                  class="field-input"
+                  style="padding-right: 14px; padding-left: 14px"
+                  placeholder="1"
+                />
+              </div>
+              <div class="field-wrap">
+                <label class="field-label" id="childLabel">عدد الأطفال</label>
+                <input
+                  type="number"
+                  id="regChildren"
+                  class="field-input"
+                  style="padding-right: 14px; padding-left: 14px"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+            <div class="field-wrap">
+              <label class="field-label" id="addressLabel">العنوان</label>
+              <textarea
+                id="regAddress"
+                rows="2"
+                class="field-input"
+                style="padding-right: 14px; padding-left: 14px; resize: none"
+              ></textarea>
+            </div>
+          </div>
+
+          <button class="submit-btn" onclick="doRegister()">
+            <i class="fas fa-user-plus"></i>
+            <span id="registerBtnText">إنشاء حساب</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = "http://127.0.0.1:5001";
+      let currentLang = "en";
+
+      const translations = {
+        ar: {
+          dir: "rtl",
+          lang: "ar",
+          pageTitle: "وصال - منصة التبرع",
+          langBtnText: "English",
+          heroTitle: "وصال",
+          heroSubtitle:
+            "منصة تبرع ذكية تربط المتبرعين<br>بمن يحتاجون إلى المساعدة",
+          statLabel1: "حالة مستفيدة",
+          statLabel2: "متبرع",
+          statLabel3: "نسبة الثقة",
+          cardTitle: "وصال للتبرع",
+          cardSubtitle: "أهلاً بك، سجّل دخولك للمتابعة",
+          loginTabText: "دخول",
+          registerTabText: "تسجيل",
+          emailLabel: "البريد الإلكتروني",
+          passwordLabel: "كلمة المرور",
+          loginBtnText: "تسجيل الدخول",
+          demoTitle: "حسابات تجريبية",
+          demoUser: "مستخدم:",
+          demoAdmin: "مدير:",
+          demoDonor: "متبرع:",
+          fullNameLabel: "الاسم الكامل",
+          emailLabel2: "البريد الإلكتروني",
+          phoneLabel: "رقم الجوال",
+          passwordLabel2: "كلمة المرور",
+          passHint: "6 أحرف على الأقل",
+          roleLabel: "أريد أن",
+          roleOpt0: "اختر دورك",
+          roleOpt1: "أتبرع للحالات",
+          roleOpt2: "أطلب المساعدة",
+          roleOpt3: "أسجّل جمعية خيرية",
+          incomeLabel: "الدخل الشهري (ريال)",
+          famLabel: "حجم الأسرة",
+          childLabel: "عدد الأطفال",
+          addressLabel: "العنوان",
+          registerBtnText: "إنشاء حساب",
+          alertOk: "تم التسجيل بنجاح! يرجى تسجيل الدخول.",
+          alertLoginFail: "فشل تسجيل الدخول",
+          alertRegFail: "فشل التسجيل",
+          alertError: "حدث خطأ، يرجى المحاولة مرة أخرى.",
+          bodyFont: "'Tajawal', sans-serif",
+        },
+        en: {
+          dir: "ltr",
+          lang: "en",
+          pageTitle: "Wisal - Donation Platform",
+          langBtnText: "العربية",
+          heroTitle: "Wisal",
+          heroSubtitle:
+            "A smart donation platform<br>connecting donors with those in need",
+          statLabel1: "Cases Helped",
+          statLabel2: "Donors",
+          statLabel3: "Trust Rate",
+          cardTitle: "Wisal Donations",
+          cardSubtitle: "Welcome back, sign in to continue",
+          loginTabText: "Sign In",
+          registerTabText: "Register",
+          emailLabel: "Email Address",
+          passwordLabel: "Password",
+          loginBtnText: "Sign In",
+          demoTitle: "Demo Accounts",
+          demoUser: "User:",
+          demoAdmin: "Admin:",
+          demoDonor: "Donor:",
+          fullNameLabel: "Full Name",
+          emailLabel2: "Email Address",
+          phoneLabel: "Phone Number",
+          passwordLabel2: "Password",
+          passHint: "Minimum 6 characters",
+          roleLabel: "I want to",
+          roleOpt0: "Select your role",
+          roleOpt1: "Donate to causes",
+          roleOpt2: "Request help",
+          roleOpt3: "Register as charity",
+          incomeLabel: "Monthly Income (ريال)",
+          famLabel: "Family Size",
+          childLabel: "Children",
+          addressLabel: "Address",
+          registerBtnText: "Create Account",
+          alertOk: "Registration successful! Please login.",
+          alertLoginFail: "Login failed",
+          alertRegFail: "Registration failed",
+          alertError: "An error occurred. Please try again.",
+          bodyFont: "'Inter', sans-serif",
+        },
+      };
+
+      const textIds = [
+        "langBtnText",
+        "heroTitle",
+        "heroSubtitle",
+        "statLabel1",
+        "statLabel2",
+        "statLabel3",
+        "cardTitle",
+        "cardSubtitle",
+        "loginTabText",
+        "registerTabText",
+        "emailLabel",
+        "passwordLabel",
+        "loginBtnText",
+        "demoTitle",
+        "demoUser",
+        "demoAdmin",
+        "demoDonor",
+        "fullNameLabel",
+        "emailLabel2",
+        "phoneLabel",
+        "passwordLabel2",
+        "passHint",
+        "roleLabel",
+        "roleOpt0",
+        "roleOpt1",
+        "roleOpt2",
+        "roleOpt3",
+        "incomeLabel",
+        "famLabel",
+        "childLabel",
+        "addressLabel",
+        "registerBtnText",
+      ];
+
+      function applyLanguage(lang) {
+        const d = translations[lang];
+        currentLang = lang;
+        document.documentElement.dir = d.dir;
+        document.documentElement.lang = d.lang;
+        document.title = d.pageTitle;
+        document.body.style.fontFamily = d.bodyFont;
+
+        textIds.forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = d[id];
+        });
+
+        // Fix icon positioning for LTR/RTL
+        document.querySelectorAll(".field-icon").forEach((icon) => {
+          if (lang === "ar") {
+            icon.style.right = "13px";
+            icon.style.left = "auto";
+          } else {
+            icon.style.left = "13px";
+            icon.style.right = "auto";
+          }
+        });
+
+        // Fix input padding for LTR/RTL
+        document.querySelectorAll(".field-input").forEach((input) => {
+          // only icon-padded ones
+          if (
+            input.closest('[style*="position:relative"]') ||
+            input.parentElement.style.position === "relative"
+          ) {
+            if (lang === "ar") {
+              input.style.paddingRight = "38px";
+              input.style.paddingLeft = "14px";
+            } else {
+              input.style.paddingLeft = "38px";
+              input.style.paddingRight = "14px";
+            }
+          }
+        });
+
+        localStorage.setItem("wisalLang", lang);
+      }
+
+      function toggleLanguage() {
+        applyLanguage(currentLang === "ar" ? "en" : "ar");
+      }
+
+      // Tab switching
+      function switchTab(tab) {
+        const lf = document.getElementById("loginForm");
+        const rf = document.getElementById("registerForm");
+        const lt = document.getElementById("loginTab");
+        const rt = document.getElementById("registerTab");
+        if (tab === "login") {
+          lf.classList.remove("hidden");
+          rf.classList.add("hidden");
+          lt.className = "tab-btn active";
+          rt.className = "tab-btn inactive";
+        } else {
+          rf.classList.remove("hidden");
+          lf.classList.add("hidden");
+          rt.className = "tab-btn active";
+          lt.className = "tab-btn inactive";
+        }
+      }
+
+      document
+        .getElementById("regRole")
+        .addEventListener("change", function () {
+          const bf = document.getElementById("beneficiaryFields");
+          this.value === "beneficiary"
+            ? bf.classList.remove("hidden")
+            : bf.classList.add("hidden");
+        });
+
+      async function doLogin() {
+        const d = translations[currentLang];
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value;
+        if (!email || !password) {
+          alert(d.alertLoginFail);
+          return;
+        }
+        try {
+          const res = await fetch(`${API_BASE}/api/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+          const result = await res.json();
+          if (res.ok) {
+            // Admin bypasses face verification – proceed directly
+            if (result.user.role === "admin") {
+              localStorage.setItem("token", result.token);
+              localStorage.setItem("user", JSON.stringify(result.user));
+              localStorage.setItem("wisalLang", currentLang);
+              window.location.href = `dashboard.html?role=admin`;
+              return;
+            }
+            // Factor 1 passed → open face verification (Factor 2)
+            _pendingLogin = {
+              token: result.token,
+              user: result.user,
+              email,
+              password,
+            };
+            await openFaceModal("verify");
+          } else {
+            alert(result.error || d.alertLoginFail);
+          }
+        } catch (e) {
+          alert(d.alertError);
+        }
+      }
+
+      async function doRegister() {
+        const d = translations[currentLang];
+        const email = document.getElementById("regEmail").value.trim();
+        const password = document.getElementById("regPassword").value;
+        const data = {
+          full_name: document.getElementById("regName").value,
+          email,
+          phone: document.getElementById("regPhone").value,
+          password,
+          role: document.getElementById("regRole").value,
+        };
+        if (data.role === "beneficiary") {
+          data.income = document.getElementById("regIncome").value;
+          data.family_size = document.getElementById("regFamily").value;
+          data.children_count = document.getElementById("regChildren").value;
+          data.address = document.getElementById("regAddress").value;
+        }
+        try {
+          const res = await fetch(`${API_BASE}/api/auth/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+          const result = await res.json();
+          if (res.ok) {
+            // Account created → enroll face
+            _pendingReg = { email, password };
+            await openFaceModal("enroll");
+          } else {
+            alert(result.error || d.alertRegFail);
+          }
+        } catch (e) {
+          alert(d.alertError);
+        }
+      }
+
+      // Enter key
+      ["loginEmail", "loginPassword"].forEach((id) => {
+        document.getElementById(id).addEventListener("keypress", (e) => {
+          if (e.key === "Enter") doLogin();
+        });
+      });
+
+      // Init
+      const saved = localStorage.getItem("wisalLang") || "en";
+      applyLanguage(saved);
+    </script>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         FACE VERIFICATION / ENROLLMENT MODAL
+    ══════════════════════════════════════════════════════════════════════ -->
+    <div id="faceModal" class="face-modal-overlay hidden">
+      <div class="face-modal-card">
+        <!-- Icon -->
+        <div
+          style="display: flex; justify-content: center; margin-bottom: 14px"
+        >
+          <div
+            class="gradient-bg"
+            style="
+              padding: 10px 12px;
+              border-radius: 14px;
+              display: inline-flex;
+            "
+          >
+            <i class="fas fa-camera text-white" style="font-size: 20px"></i>
+          </div>
+        </div>
+
+        <div class="face-modal-title" id="faceModalTitle">
+          Face Verification
+        </div>
+        <p class="face-modal-sub" id="faceModalSub">
+          Look at the camera to verify your identity
+        </p>
+
+        <!-- Error message -->
+        <div class="face-errmsg" id="faceErrMsg"></div>
+
+        <!-- Webcam ring -->
+        <div id="faceRing" class="face-ring">
+          <div class="face-ring-ph" id="facePH">
+            <div class="ph-ico">📷</div>
+            <span id="facePHText">Initializing camera…</span>
+          </div>
+          <video id="faceVideo" autoplay muted playsinline></video>
+          <canvas id="faceCanvas" style="display: none"></canvas>
+          <div class="face-countdown" id="faceCountdown"></div>
+        </div>
+
+        <!-- Preview after capture -->
+        <div class="face-preview-ring" id="facePreview">
+          <img id="facePreviewImg" src="" alt="Captured face" />
+        </div>
+
+        <p class="face-hint" id="faceHint">
+          Position your face inside the circle
+        </p>
+
+        <!-- Action buttons -->
+        <div class="face-btn-row">
+          <button
+            class="face-btn face-btn-primary"
+            id="faceCaptureBtn"
+            onclick="faceCapture()"
+            style="display: none"
+          >
+            <i class="fas fa-camera"></i>
+            <span id="faceCaptureTxt">Capture</span>
+          </button>
+          <button
+            class="face-btn face-btn-outline"
+            id="faceRetakeBtn"
+            onclick="faceRetake()"
+            style="display: none"
+          >
+            <i class="fas fa-redo"></i>
+            <span id="faceRetakeTxt">Retake</span>
+          </button>
+          <button
+            class="face-btn face-btn-success"
+            id="faceSubmitBtn"
+            onclick="faceSubmit()"
+            style="display: none"
+          >
+            <span id="faceSubmitTxt">Confirm</span>
+            <div class="face-spinner" id="faceSpinner"></div>
+          </button>
+        </div>
+
+        <button
+          onclick="faceCancel()"
+          style="
+            margin-top: 16px;
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+          "
+        >
+          ← <span id="faceCancelTxt">Cancel</span>
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // ── Face API base URL (FastAPI server) ────────────────────────────────────
+      const FACE_API_BASE = "http://127.0.0.1:8000";
+
+      // ── State ─────────────────────────────────────────────────────────────────
+      let _faceMode = "verify"; // 'verify' | 'enroll'
+      let _faceStream = null;
+      let _faceCapturedBlob = null;
+      let _pendingLogin = null; // { token, user, email, password }
+      let _pendingReg = null; // { email, password }
+
+      // ── i18n strings for face modal ───────────────────────────────────────────
+      const faceI18n = {
+        ar: {
+          verifyTitle: "التحقق من الوجه",
+          verifySub: "انظر إلى الكاميرا للتحقق من هويتك",
+          enrollTitle: "تسجيل بصمة الوجه",
+          enrollSub: "سنحفظ صورة وجهك لتأمين دخولك في المستقبل",
+          initCam: "جارٍ تشغيل الكاميرا...",
+          posHint: "ضع وجهك داخل الدائرة، ثم اضغط التقاط",
+          captureBtn: "التقاط",
+          retakeBtn: "إعادة",
+          confirmBtn: "تأكيد",
+          cancelBtn: "إلغاء",
+          capturing: "...استعد",
+          previewHint: "هل الصورة واضحة؟",
+          camErr: "تعذّر الوصول إلى الكاميرا. يرجى السماح بالوصول.",
+        },
+        en: {
+          verifyTitle: "Face Verification",
+          verifySub: "Look at the camera to verify your identity",
+          enrollTitle: "Face Enrollment",
+          enrollSub: "We'll save your face to secure future logins",
+          initCam: "Initializing camera…",
+          posHint: "Position your face inside the circle, then capture",
+          captureBtn: "Capture",
+          retakeBtn: "Retake",
+          confirmBtn: "Confirm",
+          cancelBtn: "Cancel",
+          capturing: "Hold still…",
+          previewHint: "Looking good?",
+          camErr: "Could not access camera. Please allow camera permission.",
+        },
+      };
+      const fi = () => faceI18n[currentLang] || faceI18n.en;
+
+      // ── Utilities ─────────────────────────────────────────────────────────────
+      const _sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+      function blobToDataURL(blob) {
+        return new Promise((res, rej) => {
+          const reader = new FileReader();
+          reader.onload = (e) => res(e.target.result);
+          reader.onerror = rej;
+          reader.readAsDataURL(blob);
+        });
+      }
+
+      function captureFaceBlob() {
+        const video = document.getElementById("faceVideo");
+        const canvas = document.getElementById("faceCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+        ctx.drawImage(video, 0, 0);
+        return new Promise((res) => canvas.toBlob(res, "image/jpeg", 0.92));
+      }
+
+      function setFaceErr(msg) {
+        const el = document.getElementById("faceErrMsg");
+        el.textContent = msg;
+        el.classList.add("show");
+      }
+      function clearFaceErr() {
+        document.getElementById("faceErrMsg").classList.remove("show");
+      }
+
+      // ── Open modal ────────────────────────────────────────────────────────────
+      async function openFaceModal(mode) {
+        _faceMode = mode;
+        _faceCapturedBlob = null;
+        const t = fi();
+
+        // Set text
+        document.getElementById("faceModalTitle").textContent =
+          mode === "verify" ? t.verifyTitle : t.enrollTitle;
+        document.getElementById("faceModalSub").textContent =
+          mode === "verify" ? t.verifySub : t.enrollSub;
+        document.getElementById("facePHText").textContent = t.initCam;
+        document.getElementById("faceHint").textContent = t.posHint;
+        document.getElementById("faceCaptureTxt").textContent = t.captureBtn;
+        document.getElementById("faceRetakeTxt").textContent = t.retakeBtn;
+        document.getElementById("faceSubmitTxt").textContent = t.confirmBtn;
+        document.getElementById("faceCancelTxt").textContent = t.cancelBtn;
+
+        // Reset UI state
+        document.getElementById("faceRing").style.display = "block";
+        document.getElementById("facePreview").style.display = "none";
+        document.getElementById("faceVideo").style.display = "none";
+        document.getElementById("facePH").style.display = "flex";
+        document.getElementById("faceRing").classList.remove("live");
+        document.getElementById("faceCaptureBtn").style.display = "none";
+        document.getElementById("faceRetakeBtn").style.display = "none";
+        document.getElementById("faceSubmitBtn").style.display = "none";
+        clearFaceErr();
+
+        document.getElementById("faceModal").classList.remove("hidden");
+        await _startFaceCam();
+      }
+
+      async function _startFaceCam() {
+        try {
+          _faceStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 640 },
+              height: { ideal: 480 },
+              facingMode: "user",
+            },
+            audio: false,
+          });
+          const video = document.getElementById("faceVideo");
+          video.srcObject = _faceStream;
+          await new Promise((res, rej) => {
+            video.onloadedmetadata = res;
+            setTimeout(() => rej(new Error("timeout")), 8000);
+          });
+          await video.play();
+          document.getElementById("faceRing").classList.add("live");
+          document.getElementById("facePH").style.display = "none";
+          video.style.display = "block";
+          document.getElementById("faceCaptureBtn").style.display =
+            "inline-flex";
+        } catch (e) {
+          const msg = fi().camErr;
+          document.getElementById("facePHText").textContent = msg;
+          setFaceErr(msg);
+        }
+      }
+
+      function _stopFaceCam() {
+        if (_faceStream) {
+          _faceStream.getTracks().forEach((t) => t.stop());
+          _faceStream = null;
+        }
+        document.getElementById("faceRing").classList.remove("live");
+      }
+
+      // ── Capture → countdown → preview ────────────────────────────────────────
+      async function faceCapture() {
+        clearFaceErr();
+        document.getElementById("faceCaptureBtn").style.display = "none";
+        document.getElementById("faceHint").textContent = fi().capturing;
+
+        const cd = document.getElementById("faceCountdown");
+        cd.classList.add("show");
+        for (let i = 3; i >= 1; i--) {
+          cd.textContent = i;
+          await _sleep(1000);
+        }
+        cd.textContent = "📸";
+        await _sleep(280);
+        cd.classList.remove("show");
+
+        const blob = await captureFaceBlob();
+        _faceCapturedBlob = blob;
+        _stopFaceCam();
+
+        const dataURL = await blobToDataURL(blob);
+        document.getElementById("facePreviewImg").src = dataURL;
+        document.getElementById("faceRing").style.display = "none";
+        document.getElementById("facePreview").style.display = "block";
+        document.getElementById("faceRetakeBtn").style.display = "inline-flex";
+        document.getElementById("faceSubmitBtn").style.display = "inline-flex";
+        document.getElementById("faceHint").textContent = fi().previewHint;
+      }
+
+      async function faceRetake() {
+        _faceCapturedBlob = null;
+        clearFaceErr();
+        document.getElementById("facePreview").style.display = "none";
+        document.getElementById("faceRing").style.display = "block";
+        document.getElementById("faceVideo").style.display = "none";
+        document.getElementById("facePH").style.display = "flex";
+        document.getElementById("faceRetakeBtn").style.display = "none";
+        document.getElementById("faceSubmitBtn").style.display = "none";
+        await _startFaceCam();
+      }
+
+      // ── Submit (verify or enroll) ─────────────────────────────────────────────
+      async function faceSubmit() {
+        if (!_faceCapturedBlob) return;
+        clearFaceErr();
+
+        const btn = document.getElementById("faceSubmitBtn");
+        const txt = document.getElementById("faceSubmitTxt");
+        const spinner = document.getElementById("faceSpinner");
+        btn.disabled = true;
+        txt.style.display = "none";
+        spinner.style.display = "block";
+
+        try {
+          if (_faceMode === "verify") {
+            await _doFaceVerify();
+          } else {
+            await _doFaceEnroll();
+          }
+        } catch (err) {
+          setFaceErr(err.message || "An error occurred. Please try again.");
+          btn.disabled = false;
+          txt.style.display = "inline";
+          spinner.style.display = "none";
+        }
+      }
+
+      // Fetch with a timeout – throws if no response within `ms` milliseconds
+      async function _fetchWithTimeout(url, options, ms = 30000) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), ms);
+        try {
+          return await fetch(url, { ...options, signal: controller.signal });
+        } catch (err) {
+          if (err.name === "AbortError")
+            throw new Error(
+              "Face API did not respond. Make sure the Face API server is running on port 8000.",
+            );
+          throw new Error(
+            "Cannot reach Face API server (port 8000). Please check it is running.",
+          );
+        } finally {
+          clearTimeout(timer);
+        }
+      }
+
+      // Convert email → safe Face API username (e.g. mm@gmail.com → mm_gmail_com)
+      function _emailToFaceUsername(email) {
+        return email
+          .replace(/@/g, "_at_")
+          .replace(/\./g, "_")
+          .replace(/[^a-zA-Z0-9_]/g, "_");
+      }
+
+      async function _doFaceVerify() {
+        const { email, password } = _pendingLogin;
+        const form = new FormData();
+        form.append("username", _emailToFaceUsername(email));
+        form.append("password", password);
+        form.append("face_image", _faceCapturedBlob, "face.jpg");
+
+        const res = await _fetchWithTimeout(`${FACE_API_BASE}/api/login`, {
+          method: "POST",
+          body: form,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok)
+          throw new Error(
+            data.detail || "Face verification failed. Please try again.",
+          );
+
+        // Both factors passed → complete login
+        const { token, user } = _pendingLogin;
+        _pendingLogin = null;
+        _closeFaceModal();
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("wisalLang", currentLang);
+        window.location.href = `dashboard.html?role=${user.role}`;
+      }
+
+      async function _doFaceEnroll() {
+        const { email, password } = _pendingReg;
+        const form = new FormData();
+        form.append("username", _emailToFaceUsername(email));
+        form.append("email", email);
+        form.append("password", password);
+        form.append("face_image", _faceCapturedBlob, "face.jpg");
+
+        const res = await _fetchWithTimeout(`${FACE_API_BASE}/api/register`, {
+          method: "POST",
+          body: form,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok)
+          throw new Error(
+            data.detail || "Face enrollment failed. Please try again.",
+          );
+
+        _pendingReg = null;
+        _closeFaceModal();
+        alert(translations[currentLang].alertOk);
+        switchTab("login");
+      }
+
+      function faceCancel() {
+        _stopFaceCam();
+        _pendingLogin = null;
+        _pendingReg = null;
+        _closeFaceModal();
+      }
+
+      function _closeFaceModal() {
+        _stopFaceCam();
+        document.getElementById("faceModal").classList.add("hidden");
+      }
+    </script>
+  </body>
+</html>

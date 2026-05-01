@@ -1,0 +1,315 @@
+﻿<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile - Wisal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  *{box-sizing:border-box}body{font-family:'Inter',sans-serif;background:#f3f4f6}body.lang-ar{font-family:'Tajawal',sans-serif}
+  .grad{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
+  .tab-btn{transition:all .2s;border-bottom:2px solid transparent;padding:14px 22px;font-size:13.5px;font-weight:600;color:#6b7280;background:none;border-top:none;border-left:none;border-right:none;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap}
+  .tab-btn.active{border-bottom-color:#7c3aed;color:#7c3aed;font-weight:700}
+  .tab-btn:hover:not(.active){background:#f9fafb;color:#374151}
+  .info-val{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:11px 14px;color:#111;font-size:14px;min-height:44px}
+  .lbl{font-size:11.5px;font-weight:700;color:#9ca3af;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;display:block}
+  .inp{width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:10px;font-size:14px;outline:none;transition:border-color .2s;background:white}
+  .inp:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+  .btn-p{background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:10px 22px;border-radius:10px;font-weight:700;font-size:14px;border:none;cursor:pointer;transition:opacity .2s}
+  .btn-p:hover{opacity:.88}.btn-o{padding:10px 22px;border-radius:10px;font-weight:600;font-size:14px;border:1.5px solid #d1d5db;background:white;cursor:pointer;color:#374151}
+  .hero-cover{height:130px;background:linear-gradient(135deg,rgba(102,126,234,.9),rgba(118,75,162,.9)),url('https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat}
+  .stat-card{border-radius:14px;padding:22px;text-align:center}
+</style>
+</head>
+<body>
+<div class="min-h-screen">
+  <div style="background:white;border-bottom:1px solid #e5e7eb;padding:12px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;">
+    <button onclick="goBack()" style="display:flex;align-items:center;gap:8px;color:#6b7280;font-size:14px;font-weight:600;background:none;border:none;cursor:pointer;">
+      <i class="fas fa-arrow-left"></i><span id="t_back">Back to Dashboard</span>
+    </button>
+    <button onclick="toggleLang()" style="display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:50px;border:1.5px solid #e5e7eb;font-size:13px;font-weight:700;color:#6b7280;background:white;cursor:pointer;">
+      <i class="fas fa-globe" style="color:#7c3aed;"></i><span id="t_langBtn">&#1575;&#1604;&#1593;&#1585;&#1576;&#1610;&#1577;</span>
+    </button>
+  </div>
+  <div class="max-w-5xl mx-auto p-6">
+    <!-- Profile Card -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
+      <div class="hero-cover"></div>
+      <div style="padding:0 28px 22px;">
+        <div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px;margin-top:-44px;">
+          <div style="width:88px;height:88px;background:white;border-radius:50%;padding:4px;box-shadow:0 4px 14px rgba(0,0,0,.15);flex-shrink:0;">
+            <div class="grad" style="width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:22px;font-weight:800;" id="profileInitials">?</div>
+          </div>
+          <div style="flex:1;padding-bottom:4px;">
+            <h1 style="font-size:20px;font-weight:800;color:#111;margin:0 0 3px;" id="profileName"></h1>
+            <p style="font-size:13px;color:#6b7280;margin:0 0 5px;" id="profileEmail"></p>
+            <span class="grad" style="display:inline-block;padding:2px 12px;border-radius:50px;color:white;font-size:11px;font-weight:700;" id="profileRoleBadge"></span>
+          </div>
+          <button onclick="openEditModal()" class="btn-p" style="display:flex;align-items:center;gap:7px;flex-shrink:0;">
+            <i class="fas fa-edit"></i><span id="t_editProfile">Edit Profile</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Tabs -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div style="border-bottom:1px solid #e5e7eb;display:flex;overflow-x:auto;">
+        <button onclick="switchTab('personal')" id="tabPersonal" class="tab-btn active"><i class="fas fa-user"></i><span id="t_tab1">Personal Info</span></button>
+        <button onclick="switchTab('statistics')" id="tabStatistics" class="tab-btn"><i class="fas fa-chart-bar"></i><span id="t_tab2">Statistics</span></button>
+        <button onclick="switchTab('activity')" id="tabActivity" class="tab-btn"><i class="fas fa-history"></i><span id="t_tab3">Activity</span></button>
+        <button onclick="switchTab('security')" id="tabSecurity" class="tab-btn"><i class="fas fa-shield-alt"></i><span id="t_tab4">Security</span></button>
+      </div>
+      <!-- Personal -->
+      <div id="personalTab" style="padding:28px;">
+        <h2 style="font-size:15px;font-weight:700;color:#1f2937;margin-bottom:18px;" id="t_personalTitle">Personal Information</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div><span class="lbl" id="t_labelName">Full Name</span><div class="info-val" id="displayFullName"></div></div>
+          <div><span class="lbl" id="t_labelEmail">Email Address</span><div class="info-val" id="displayEmail"></div></div>
+          <div><span class="lbl" id="t_labelPhone">Phone Number</span><div class="info-val" id="displayPhone"></div></div>
+          <div><span class="lbl" id="t_labelJoined">Member Since</span><div class="info-val" id="displayJoined"></div></div>
+        </div>
+        <div id="beneficiaryFields" class="hidden" style="border-top:1px solid #e5e7eb;margin-top:20px;padding-top:20px;">
+          <h3 style="font-size:13px;font-weight:700;color:#374151;margin-bottom:14px;" id="t_extraInfo">Additional Information</h3>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+            <div><span class="lbl" id="t_income">Monthly Income</span><div class="info-val" id="displayIncome"></div></div>
+            <div><span class="lbl" id="t_family">Family Size</span><div class="info-val" id="displayFamilySize"></div></div>
+            <div><span class="lbl" id="t_children">Children</span><div class="info-val" id="displayChildren"></div></div>
+          </div>
+          <div style="margin-top:14px;"><span class="lbl" id="t_address">Address</span><div class="info-val" id="displayAddress"></div></div>
+        </div>
+        <div id="donorFields" class="hidden" style="border-top:1px solid #e5e7eb;margin-top:20px;padding-top:20px;">
+          <h3 style="font-size:13px;font-weight:700;color:#374151;margin-bottom:14px;" id="t_donorInfo">Donor Information</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div><span class="lbl" id="t_totalDon">Total Donations</span><div class="info-val" id="displayTotalDonations">0 ريال</div></div>
+            <div><span class="lbl" id="t_casesSupp">Cases Supported</span><div class="info-val" id="displayCasesSupported">0</div></div>
+          </div>
+        </div>
+      </div>
+      <!-- Statistics -->
+      <div id="statisticsTab" class="hidden" style="padding:28px;">
+        <h2 style="font-size:15px;font-weight:700;color:#1f2937;margin-bottom:18px;" id="t_statsTitle">Statistics</h2>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;">
+          <div class="stat-card" style="background:#eff6ff;"><p style="font-size:30px;font-weight:800;color:#2563eb;" id="statCases">0</p><p style="font-size:12px;color:#6b7280;margin-top:4px;" id="t_sCases">Total Cases</p></div>
+          <div class="stat-card" style="background:#f0fdf4;"><p style="font-size:30px;font-weight:800;color:#16a34a;" id="statApproved">0</p><p style="font-size:12px;color:#6b7280;margin-top:4px;" id="t_sApproved">Approved</p></div>
+          <div class="stat-card" style="background:#fefce8;"><p style="font-size:30px;font-weight:800;color:#ca8a04;" id="statPending">0</p><p style="font-size:12px;color:#6b7280;margin-top:4px;" id="t_sPending">Pending</p></div>
+        </div>
+        <div id="donorStats" class="hidden" style="display:grid;grid-template-columns:1fr;gap:14px;">
+          <div style="background:#faf5ff;padding:18px;border-radius:14px;">
+            <p style="font-size:11px;font-weight:700;color:#9ca3af;margin-bottom:12px;" id="t_chartDon">Donation History</p>
+            <canvas id="donationChart" style="max-height:200px;"></canvas>
+          </div>
+        </div>
+        <div id="beneficiaryStats" class="hidden">
+          <div style="background:#fff7ed;padding:18px;border-radius:14px;">
+            <p style="font-size:11px;font-weight:700;color:#9ca3af;margin-bottom:12px;" id="t_chartCat">Cases by Category</p>
+            <canvas id="beneficiaryCategoryChart" style="max-height:200px;"></canvas>
+          </div>
+        </div>
+      </div>
+      <!-- Activity -->
+      <div id="activityTab" class="hidden" style="padding:28px;">
+        <h2 style="font-size:15px;font-weight:700;color:#1f2937;margin-bottom:18px;" id="t_actTitle">Recent Activity</h2>
+        <div id="activityList"><div style="text-align:center;padding:40px;color:#9ca3af;"><i class="fas fa-spinner fa-spin" style="font-size:24px;margin-bottom:8px;display:block;"></i><span id="t_loading">Loading...</span></div></div>
+      </div>
+      <!-- Security -->
+      <div id="securityTab" class="hidden" style="padding:28px;">
+        <h2 style="font-size:15px;font-weight:700;color:#1f2937;margin-bottom:18px;" id="t_secTitle">Security Settings</h2>
+        <div style="max-width:420px;">
+          <h3 style="font-size:13px;font-weight:700;color:#374151;margin-bottom:14px;" id="t_chgPwd">Change Password</h3>
+          <form id="changePasswordForm" style="display:flex;flex-direction:column;gap:14px;">
+            <div><span class="lbl" id="t_curPwd">Current Password</span><input type="password" name="current_password" required class="inp"></div>
+            <div><span class="lbl" id="t_newPwd">New Password</span><input type="password" name="new_password" required class="inp"></div>
+            <div><span class="lbl" id="t_confPwd">Confirm New Password</span><input type="password" name="confirm_password" required class="inp"></div>
+            <button type="submit" class="btn-p" id="t_updatePwd">Update Password</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Edit Modal -->
+<div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:50;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:white;border-radius:18px;width:100%;max-width:500px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);">
+    <div style="padding:20px 24px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;">
+      <h2 style="font-size:16px;font-weight:700;" id="t_editTitle">Edit Profile</h2>
+      <button onclick="closeEditModal()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:18px;"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="editProfileForm" style="padding:22px 24px;display:flex;flex-direction:column;gap:14px;">
+      <div><span class="lbl" id="t_editName">Full Name</span><input type="text" name="full_name" id="editFullName" required class="inp"></div>
+      <div><span class="lbl" id="t_editPhone">Phone Number</span><input type="tel" name="phone" id="editPhone" class="inp"></div>
+      <div id="editBenefFields" class="hidden" style="display:none;flex-direction:column;gap:12px;">
+        <div><span class="lbl" id="t_editIncome">Monthly Income (ريال)</span><input type="number" name="income" id="editIncome" class="inp"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div><span class="lbl" id="t_editFamily">Family Size</span><input type="number" name="family_size" id="editFamilySize" class="inp"></div>
+          <div><span class="lbl" id="t_editChildren">Children</span><input type="number" name="children_count" id="editChildrenCount" class="inp"></div>
+        </div>
+        <div><span class="lbl" id="t_editAddress">Address</span><textarea name="address" id="editAddress" rows="2" class="inp" style="resize:none;"></textarea></div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:6px;">
+        <button type="button" onclick="closeEditModal()" class="btn-o" id="t_cancel">Cancel</button>
+        <button type="submit" class="btn-p" id="t_save">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+const API='http://127.0.0.1:5001';
+const token=localStorage.getItem('token');
+const localUser=JSON.parse(localStorage.getItem('user')||'{}');
+if(!token){window.location.href='../index.html';}
+let profileData={};let chartsCreated={};
+let currentLang=localStorage.getItem('wisalLang')||'en';
+const T={
+  en:{dir:'ltr',bodyClass:'',langBtn:'&#1575;&#1604;&#1593;&#1585;&#1576;&#1610;&#1577;',t_back:'Back to Dashboard',t_editProfile:'Edit Profile',t_tab1:'Personal Info',t_tab2:'Statistics',t_tab3:'Activity',t_tab4:'Security',t_personalTitle:'Personal Information',t_labelName:'Full Name',t_labelEmail:'Email Address',t_labelPhone:'Phone Number',t_labelJoined:'Member Since',t_extraInfo:'Additional Information',t_income:'Monthly Income',t_family:'Family Size',t_children:'Children',t_address:'Address',t_donorInfo:'Donor Information',t_totalDon:'Total Donations',t_casesSupp:'Cases Supported',t_statsTitle:'Statistics',t_sCases:'Total Cases',t_sApproved:'Approved',t_sPending:'Pending',t_chartDon:'Donation History',t_chartCat:'Cases by Category',t_actTitle:'Recent Activity',t_loading:'Loading...',t_secTitle:'Security Settings',t_chgPwd:'Change Password',t_curPwd:'Current Password',t_newPwd:'New Password',t_confPwd:'Confirm New Password',t_updatePwd:'Update Password',t_editTitle:'Edit Profile',t_editName:'Full Name',t_editPhone:'Phone Number',t_editIncome:'Monthly Income (ريال)',t_editFamily:'Family Size',t_editChildren:'Children',t_editAddress:'Address',t_cancel:'Cancel',t_save:'Save Changes',noAct:'No recent activity.',pwdNo:'Passwords do not match.',pwdOk:'Password updated successfully.',profOk:'Profile saved successfully.',err:'Something went wrong.'},
+  ar:{dir:'rtl',bodyClass:'lang-ar',langBtn:'English',t_back:'&#1575;&#1604;&#1593;&#1608;&#1583;&#1577; &#1604;&#1604;&#1608;&#1581;&#1577; &#1575;&#1604;&#1578;&#1581;&#1603;&#1605;',t_editProfile:'&#1578;&#1593;&#1583;&#1610;&#1604; &#1575;&#1604;&#1581;&#1587;&#1575;&#1576;',t_tab1:'&#1575;&#1604;&#1576;&#1610;&#1575;&#1606;&#1575;&#1578; &#1575;&#1604;&#1588;&#1582;&#1589;&#1610;&#1577;',t_tab2:'&#1575;&#1604;&#1573;&#1581;&#1589;&#1575;&#1574;&#1610;&#1575;&#1578;',t_tab3:'&#1575;&#1604;&#1606;&#1588;&#1575;&#1591;',t_tab4:'&#1575;&#1604;&#1571;&#1605;&#1575;&#1606;',t_personalTitle:'&#1575;&#1604;&#1576;&#1610;&#1575;&#1606;&#1575;&#1578; &#1575;&#1604;&#1588;&#1582;&#1589;&#1610;&#1577;',t_labelName:'&#1575;&#1604;&#1575;&#1587;&#1605; &#1575;&#1604;&#1603;&#1575;&#1605;&#1604;',t_labelEmail:'&#1575;&#1604;&#1576;&#1585;&#1610;&#1583; &#1575;&#1604;&#1573;&#1604;&#1603;&#1578;&#1585;&#1608;&#1606;&#1610;',t_labelPhone:'&#1585;&#1602;&#1605; &#1575;&#1604;&#1580;&#1608;&#1575;&#1604;',t_labelJoined:'&#1578;&#1575;&#1585;&#1610;&#1582; &#1575;&#1604;&#1578;&#1587;&#1580;&#1610;&#1604;',t_extraInfo:'&#1605;&#1593;&#1604;&#1608;&#1605;&#1575;&#1578; &#1573;&#1590;&#1575;&#1601;&#1610;&#1577;',t_income:'&#1575;&#1604;&#1583;&#1582;&#1604; &#1575;&#1604;&#1588;&#1607;&#1585;&#1610;',t_family:'&#1581;&#1580;&#1605; &#1575;&#1604;&#1571;&#1587;&#1585;&#1577;',t_children:'&#1593;&#1583;&#1583; &#1575;&#1604;&#1571;&#1591;&#1601;&#1575;&#1604;',t_address:'&#1575;&#1604;&#1593;&#1606;&#1608;&#1575;&#1606;',t_donorInfo:'&#1576;&#1610;&#1575;&#1606;&#1575;&#1578; &#1575;&#1604;&#1605;&#1578;&#1576;&#1585;&#1593;',t_totalDon:'&#1573;&#1580;&#1605;&#1575;&#1604;&#1610; &#1575;&#1604;&#1578;&#1576;&#1585;&#1593;&#1575;&#1578;',t_casesSupp:'&#1575;&#1604;&#1581;&#1575;&#1604;&#1575;&#1578; &#1575;&#1604;&#1605;&#1583;&#1593;&#1608;&#1605;&#1577;',t_statsTitle:'&#1575;&#1604;&#1573;&#1581;&#1589;&#1575;&#1574;&#1610;&#1575;&#1578;',t_sCases:'&#1573;&#1580;&#1605;&#1575;&#1604;&#1610; &#1575;&#1604;&#1581;&#1575;&#1604;&#1575;&#1578;',t_sApproved:'&#1605;&#1593;&#1578;&#1605;&#1583;&#1577;',t_sPending:'&#1605;&#1593;&#1604;&#1602;&#1577;',t_chartDon:'&#1587;&#1580;&#1604; &#1575;&#1604;&#1578;&#1576;&#1585;&#1593;&#1575;&#1578;',t_chartCat:'&#1575;&#1604;&#1581;&#1575;&#1604;&#1575;&#1578; &#1581;&#1587;&#1576; &#1575;&#1604;&#1601;&#1574;&#1577;',t_actTitle:'&#1575;&#1604;&#1606;&#1588;&#1575;&#1591; &#1575;&#1604;&#1571;&#1582;&#1610;&#1585;',t_loading:'&#1580;&#1575;&#1585;&#1610; &#1575;&#1604;&#1578;&#1581;&#1605;&#1610;&#1604;...',t_secTitle:'&#1573;&#1593;&#1583;&#1575;&#1583;&#1575;&#1578; &#1575;&#1604;&#1571;&#1605;&#1575;&#1606;',t_chgPwd:'&#1578;&#1594;&#1610;&#1610;&#1585; &#1603;&#1604;&#1605;&#1577; &#1575;&#1604;&#1605;&#1585;&#1608;&#1585;',t_curPwd:'&#1603;&#1604;&#1605;&#1577; &#1575;&#1604;&#1605;&#1585;&#1608;&#1585; &#1575;&#1604;&#1581;&#1575;&#1604;&#1610;&#1577;',t_newPwd:'&#1603;&#1604;&#1605;&#1577; &#1575;&#1604;&#1605;&#1585;&#1608;&#1585; &#1575;&#1604;&#1580;&#1583;&#1610;&#1583;&#1577;',t_confPwd:'&#1578;&#1571;&#1603;&#1610;&#1583; &#1603;&#1604;&#1605;&#1577; &#1575;&#1604;&#1605;&#1585;&#1608;&#1585;',t_updatePwd:'&#1578;&#1581;&#1583;&#1610;&#1579; &#1603;&#1604;&#1605;&#1577; &#1575;&#1604;&#1605;&#1585;&#1608;&#1585;',t_editTitle:'&#1578;&#1593;&#1583;&#1610;&#1604; &#1575;&#1604;&#1581;&#1587;&#1575;&#1576;',t_editName:'&#1575;&#1604;&#1575;&#1587;&#1605; &#1575;&#1604;&#1603;&#1575;&#1605;&#1604;',t_editPhone:'&#1585;&#1602;&#1605; &#1575;&#1604;&#1580;&#1608;&#1575;&#1604;',t_editIncome:'&#1575;&#1604;&#1583;&#1582;&#1604; &#1575;&#1604;&#1588;&#1607;&#1585;&#1610; (&#1585;&#1610;&#1575;&#1604;)',t_editFamily:'&#1581;&#1580;&#1605; &#1575;&#1604;&#1571;&#1587;&#1585;&#1577;',t_editChildren:'&#1593;&#1583;&#1583; &#1575;&#1604;&#1571;&#1591;&#1601;&#1575;&#1604;',t_editAddress:'&#1575;&#1604;&#1593;&#1606;&#1608;&#1575;&#1606;',t_cancel:'&#1573;&#1604;&#1594;&#1575;&#1569;',t_save:'&#1581;&#1601;&#1592; &#1575;&#1604;&#1578;&#1594;&#1610;&#1610;&#1585;&#1575;&#1578;',noAct:'&#1604;&#1575; &#1610;&#1608;&#1580;&#1583; &#1606;&#1588;&#1575;&#1591; &#1581;&#1583;&#1610;&#1579;.',pwdNo:'&#1603;&#1604;&#1605;&#1578;&#1575; &#1575;&#1604;&#1605;&#1585;&#1608;&#1585; &#1594;&#1610;&#1585; &#1605;&#1578;&#1591;&#1575;&#1576;&#1602;&#1578;&#1610;&#1606;.',pwdOk:'&#1578;&#1605; &#1578;&#1594;&#1610;&#1610;&#1585; &#1603;&#1604;&#1605;&#1577; &#1575;&#1604;&#1605;&#1585;&#1608;&#1585; &#1576;&#1606;&#1580;&#1575;&#1581;.',profOk:'&#1578;&#1605; &#1581;&#1601;&#1592; &#1575;&#1604;&#1576;&#1610;&#1575;&#1606;&#1575;&#1578; &#1576;&#1606;&#1580;&#1575;&#1581;.',err:'&#1581;&#1583;&#1579; &#1582;&#1591;&#1571;&#1548; &#1610;&#1585;&#1580;&#1609; &#1575;&#1604;&#1605;&#1581;&#1575;&#1608;&#1604;&#1577; &#1605;&#1585;&#1577; &#1571;&#1582;&#1585;&#1609;.'}
+};
+function applyLang(lang){
+  currentLang=lang;const d=T[lang];
+  document.documentElement.dir=d.dir;document.documentElement.lang=lang;
+  document.body.className=d.bodyClass;
+  Object.keys(d).forEach(k=>{
+    if(k==='dir'||k==='bodyClass'||k==='langBtn'||!k.startsWith('t_'))return;
+    const el=document.getElementById(k);if(el)el.innerHTML=d[k];
+  });
+  document.getElementById('t_langBtn').innerHTML=d.langBtn;
+  localStorage.setItem('wisalLang',lang);
+}
+function toggleLang(){applyLang(currentLang==='en'?'ar':'en');}
+function goBack(){
+  const role=localUser.role?`?role=${encodeURIComponent(localUser.role)}`:'';
+  window.location.href=localStorage.getItem('wisalDashboardUrl')||`${window.location.origin}/dashboard.html${role}`;
+}
+const TABS=['personal','statistics','activity','security'];
+function switchTab(tab){
+  TABS.forEach(t=>{
+    document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1))?.classList.toggle('active',t===tab);
+    const el=document.getElementById(t+'Tab');if(el){if(t===tab)el.classList.remove('hidden');else el.classList.add('hidden');}
+  });
+  if(tab==='statistics'&&!chartsCreated.stats){loadStatistics();chartsCreated.stats=true;}
+  if(tab==='activity')loadActivity();
+}
+async function loadProfile(){
+  try{
+    const res=await fetch(`${API}/api/auth/profile`,{headers:{'Authorization':`Bearer ${token}`}});
+    if(!res.ok)throw new Error('Failed');
+    profileData=await res.json();
+    const name=profileData.full_name||localUser.name||'';
+    const email=profileData.email||localUser.email||'';
+    const role=profileData.role||localUser.role||'';
+    const ini=name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    document.getElementById('profileInitials').textContent=ini;
+    document.getElementById('profileName').textContent=name;
+    document.getElementById('profileEmail').textContent=email;
+    document.getElementById('profileRoleBadge').textContent=role.charAt(0).toUpperCase()+role.slice(1);
+    document.getElementById('displayFullName').textContent=name;
+    document.getElementById('displayEmail').textContent=email;
+    const notProvided=currentLang==='ar'?'غير محدد':'Not provided';
+    document.getElementById('displayPhone').textContent=profileData.phone||notProvided;
+    document.getElementById('displayJoined').textContent=profileData.created_at?new Date(profileData.created_at).toLocaleDateString('en-GB',{year:'numeric',month:'long',day:'numeric'}):'';
+    if(role==='beneficiary'){
+      document.getElementById('beneficiaryFields').classList.remove('hidden');
+      document.getElementById('displayIncome').textContent=`${profileData.income??0} ريال`;
+      document.getElementById('displayFamilySize').textContent=profileData.family_size??1;
+      document.getElementById('displayChildren').textContent=profileData.children_count??0;
+      document.getElementById('displayAddress').textContent=profileData.address||notProvided;
+      const bf=document.getElementById('editBenefFields');bf.classList.remove('hidden');bf.style.display='flex';
+    }else if(role==='donor'){
+      document.getElementById('donorFields').classList.remove('hidden');
+      document.getElementById('displayTotalDonations').textContent=`${profileData.total_donations??0} ريال`;
+    }
+  }catch(e){
+    const name=localUser.name||'';const role=localUser.role||'';
+    document.getElementById('profileInitials').textContent=name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    document.getElementById('profileName').textContent=name;
+    document.getElementById('profileEmail').textContent=localUser.email||'';
+    document.getElementById('profileRoleBadge').textContent=role.charAt(0).toUpperCase()+role.slice(1);
+    document.getElementById('displayFullName').textContent=name;
+    document.getElementById('displayEmail').textContent=localUser.email||'';
+  }
+}
+async function loadStatistics(){
+  try{
+    const res=await fetch(`${API}/api/cases/my-cases`,{headers:{'Authorization':`Bearer ${token}`}});
+    if(res.ok){
+      const cases=await res.json();
+      document.getElementById('statCases').textContent=cases.length;
+      document.getElementById('statApproved').textContent=cases.filter(c=>c.status==='approved').length;
+      document.getElementById('statPending').textContent=cases.filter(c=>c.status==='pending').length;
+      if(profileData.role==='beneficiary'){
+        document.getElementById('beneficiaryStats').classList.remove('hidden');
+        const cats={};cases.forEach(c=>{cats[c.category]=(cats[c.category]||0)+1;});
+        const ctx=document.getElementById('beneficiaryCategoryChart')?.getContext('2d');
+        if(ctx&&Object.keys(cats).length)new Chart(ctx,{type:'doughnut',data:{labels:Object.keys(cats),datasets:[{data:Object.values(cats),backgroundColor:['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#8b5cf6']}]},options:{plugins:{legend:{position:'bottom'}}}});
+      }
+    }
+    if(profileData.role==='donor'){
+      const ds=document.getElementById('donorStats');ds.classList.remove('hidden');ds.style.display='grid';
+      const dres=await fetch(`${API}/api/donations/my-donations`,{headers:{'Authorization':`Bearer ${token}`}});
+      if(dres.ok){
+        const donations=await dres.json();const months={};
+        donations.forEach(d=>{const m=new Date(d.created_at).toLocaleString('en',{month:'short'});months[m]=(months[m]||0)+(d.amount||0);});
+        const ctx=document.getElementById('donationChart')?.getContext('2d');
+        if(ctx)new Chart(ctx,{type:'bar',data:{labels:Object.keys(months),datasets:[{label:'ريال',data:Object.values(months),backgroundColor:'#8b5cf6',borderRadius:6}]},options:{plugins:{legend:{display:false}}}});
+      }
+    }
+  }catch(e){console.error('Stats:',e);}
+}
+async function loadActivity(){
+  const list=document.getElementById('activityList');const d=T[currentLang];
+  try{
+    const res=await fetch(`${API}/api/cases/my-cases`,{headers:{'Authorization':`Bearer ${token}`}});
+    if(!res.ok)throw new Error('Failed');
+    const cases=await res.json();
+    if(!cases.length){list.innerHTML=`<p style="text-align:center;color:#9ca3af;padding:40px;">${d.noAct}</p>`;return;}
+    const colors={approved:'#16a34a',pending:'#ca8a04',rejected:'#dc2626','needs-info':'#2563eb'};
+    list.innerHTML=cases.slice(0,8).map(c=>`
+      <div style="border:1px solid #e5e7eb;border-radius:12px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;">
+        <div>
+          <p style="font-weight:600;color:#111;font-size:14px;">${c.title}</p>
+          <p style="font-size:12px;color:#6b7280;margin-top:4px;">
+            <span style="display:inline-block;padding:2px 8px;border-radius:50px;font-size:11px;font-weight:700;color:white;background:${colors[c.status]||'#9ca3af'}">${c.status}</span>
+            &nbsp;${c.category||''}
+          </p>
+        </div>
+        <span style="font-size:11.5px;color:#9ca3af;white-space:nowrap;">${new Date(c.created_at).toLocaleDateString()}</span>
+      </div>`).join('');
+  }catch(e){list.innerHTML=`<p style="text-align:center;color:#9ca3af;padding:40px;">${d.noAct}</p>`;}
+}
+function openEditModal(){
+  document.getElementById('editFullName').value=profileData.full_name||'';
+  document.getElementById('editPhone').value=profileData.phone||'';
+  if(profileData.role==='beneficiary'){
+    document.getElementById('editIncome').value=profileData.income||0;
+    document.getElementById('editFamilySize').value=profileData.family_size||1;
+    document.getElementById('editChildrenCount').value=profileData.children_count||0;
+    document.getElementById('editAddress').value=profileData.address||'';
+  }
+  const m=document.getElementById('editModal');m.style.display='flex';
+}
+function closeEditModal(){document.getElementById('editModal').style.display='none';}
+document.getElementById('editProfileForm').addEventListener('submit',async e=>{
+  e.preventDefault();const d=T[currentLang];
+  const data=Object.fromEntries(new FormData(e.target));
+  try{
+    const res=await fetch(`${API}/api/auth/profile`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify(data)});
+    if(res.ok){alert(d.profOk);closeEditModal();loadProfile();}
+    else{const r=await res.json();alert(r.error||d.err);}
+  }catch{alert(d.err);}
+});
+document.getElementById('changePasswordForm').addEventListener('submit',async e=>{
+  e.preventDefault();const d=T[currentLang];const fd=new FormData(e.target);
+  if(fd.get('new_password')!==fd.get('confirm_password')){alert(d.pwdNo);return;}
+  try{
+    const res=await fetch(`${API}/api/auth/change-password`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify({current_password:fd.get('current_password'),new_password:fd.get('new_password')})});
+    if(res.ok){alert(d.pwdOk);e.target.reset();}else{const r=await res.json();alert(r.error||d.err);}
+  }catch{alert(d.err);}
+});
+applyLang(currentLang);
+loadProfile();
+switchTab('personal');
+</script>
+</body>
+</html>
