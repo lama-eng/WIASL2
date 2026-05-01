@@ -4,7 +4,9 @@ Flask-JWT-Extended
 Flask-Bcrypt
 Flask-CORS
 spacy
+transformers
 torch
+tensorflow
 scikit-learn
 pandas
 numpy
@@ -16,4 +18,3 @@ python-dotenv
 werkzeug
 email-validator
 config
-gunicorn
