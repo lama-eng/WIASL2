@@ -109,3 +109,8 @@ if __name__ == '__main__':
         except Exception as e:
             print(f"❌ Error creating database tables: {e}")
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('BACKEND_PORT', '5001')))
+
+if __name__ == "__main__":
+    app = create_app()
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
