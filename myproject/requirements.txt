@@ -15,6 +15,5 @@ xgboost
 python-dotenv
 werkzeug
 email-validator
-config
 gunicorn
 
